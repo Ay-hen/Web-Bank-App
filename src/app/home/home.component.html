@@ -1,0 +1,113 @@
+<app-navbar></app-navbar>
+<div id="home" class="home-section">
+  <div class="container">
+    <div class="home-content">  <!-- New wrapper for flex alignment -->
+      <div class="home-text">
+        <h1 class="primary-text">Quick and Easy Loans for Your Financial Needs.</h1>
+        <p class="secondary-text">Our loan services offer a hassle-free and streamlined borrowing experience, providing you with the funds you need in a timely manner to meet your financial requirements.</p>
+        <button class="home-btn">Get Started</button>
+      </div>
+      <div class="home-image">  <!-- Renamed for clarity -->
+        <img src="home_1.png" alt="Home Picture" class="home-picture">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="service" class="servic-section" #servicesSection>
+  <div class="container">
+    <h2 class="main-title">Our Services</h2>
+    <div class="items-container">
+      <div class="text-center">
+        <div class="picture-container">
+          <img src="personal_loan.jpg" alt="Personal Loan" class="service-icon">
+        </div>
+        <h3 class="text-xl">Personal Loan</h3>
+        <p>Personal loans provide borrowers with flexibility to meet their financial needs.</p>
+        <button class="service-btn-card">Apply now</button>
+      </div>
+      <div class="text-center">
+        <div class="picture-container">
+          <img src="business_loan.jpg" alt="Business Loan" class="service-icon">
+        </div>
+        <h3 class="text-xl">Business Loan</h3>
+        <p>Business loan services provide financial solutions for businesses to grow.</p>
+        <button class="service-btn-card">Apply now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="process" class="py-16 bg-white" #processSection>
+  <div class="container">
+    <div class="header">
+      <h2 class="text-4xl font-bold text-gray-900 mb-4">Our Process</h2>
+      <p class="text-xl">
+        This is a process, how you can get a loan for yourself.
+      </p>
+    </div>
+    <div class="items">
+      <div class="app process-step">
+        <div class="img-cnt right">
+          <img src="app.png" alt="Application" class="process-icon">
+        </div>
+        <div class="text-cnt left">
+          <h3 class="primary-text">Application</h3>
+          <p>{{app}}</p>
+        </div>
+      </div>
+
+      <div class="doc process-step">
+        <div class="img-cnt left">
+          <img src="doc.png" alt="Doccuments" class="process-icon">
+        </div>
+        <div class="text-cnt right">
+          <h3 class="primary-text">Documentation and Verification</h3>
+          <p>{{doc}}</p>
+        </div>
+      </div>
+
+      <div class="credit process-step">
+        <div class="img-cnt right">
+          <img src="credit.png" alt="Doccuments" class="process-icon">
+        </div>
+        <div class="text-cnt left">
+          <h3 class="primary-text">Credit Assessment</h3>
+          <p>{{credit}}</p>
+        </div>
+      </div>
+
+      <div class="loan process-step">
+        <div class="img-cnt left">
+          <img src="loan.png" alt="Loan" class="process-icon">
+        </div>
+        <div class="text-cnt">
+          <h3 class="primary-text right">Loan Approval</h3>
+          <p>{{loan}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="about" class="py-16" #aboutSection>
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-6">About Us</h2>
+    <div class="content-wrapper">
+      <div class="left-content">
+        <img src="aboutus.png" alt="About Us" class="w-full mb-4">
+        <p class="text-gray-600">QuickFunds - Your trusted financial partner for loans. Quick approvals, competitive rates, and personalized solutions to meet your unique financial goals. Apply online today!</p>
+      </div>
+      <div class="right-content">
+        <form class="space-y-4">
+          <input type="text" placeholder="Your Name" class="w-full p-2 border rounded">
+          <input type="tel" placeholder="Phone number" class="w-full p-2 border rounded">
+          <input type="email" placeholder="Email address" class="w-full p-2 border rounded">
+          <input type="text" placeholder="Description" class="description">
+          <button type="submit" class="w-full bg-teal-600 text-white p-3 rounded hover:bg-teal-700 transition">SEND</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

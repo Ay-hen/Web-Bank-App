@@ -1,0 +1,24 @@
+<nav class="navbar">
+        <ul class="nav-list">
+                <li class="logo">Logo</li>
+                <div class="nav-center">
+                <li><a href="#home" 
+                        [class.active]="activeSection === 'home'" 
+                        (click)="handleNavClick($event, 'home')">Home</a></li>
+                <li><a href="#service" 
+                        [class.active]="activeSection === 'service'" 
+                        (click)="handleNavClick($event, 'service')">Services</a></li>
+                <li><a href="#process" 
+                        [class.active]="activeSection === 'process'" 
+                        (click)="handleNavClick($event, 'process')">Our Process</a></li>
+                <li><a href="#about" 
+                        [class.active]="activeSection === 'about'" 
+                        (click)="handleNavClick($event, 'about')">About</a></li>
+                </div>
+                <li class="login">
+                        <a routerLink="/login" 
+                                routerLinkActive="active" 
+                                [routerLinkActiveOptions]="{exact: true}">Login</a>
+                </li>
+        </ul>
+</nav>
