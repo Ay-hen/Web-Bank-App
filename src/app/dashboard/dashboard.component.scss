@@ -1,4 +1,128 @@
-body{
+body {
     background-color: #D3FFE7;
-}
-
+  }
+  
+  /* Global Styles */
+  * {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Dashboard Container */
+  .dashboard-container {
+    margin-left: 250px; /* Adjust to match navbar width */
+    padding: 24px;
+    min-height: 100vh;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers content */
+    text-align: center; /* Centers text */
+  }
+  
+  /* Dashboard Header */
+  .dashboard-header {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centers the header text */
+    width: 100%;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+  }
+  
+  /* Dashboard Content */
+  .dashboard-content {
+    display: flex;
+    flex-direction: column; /* Stack text and image vertically */
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    margin-top: 24px;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+    width: 100%; /* Centered and limited width */
+  }
+  
+  /* Text Section */
+  .dashboard-content .text {
+    width: 100%;
+  }
+  
+  .dashboard-content .text h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+  }
+  
+  .dashboard-content .text p {
+    font-size: 16px;
+    color: #666;
+  }
+  
+  /* Image Section (Now at the Bottom) */
+  .dashboard-content .img {
+    width: 57%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8px; /* Space between text and image */
+  }
+  
+  .dashboard-content .img img {
+    max-width: 57%;
+    height: auto;
+    border-radius: 8px;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .dashboard-content .img img:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .dashboard-container {
+      margin-left: 200px;
+      padding: 20px;
+    }
+  
+    .dashboard-content {
+      width: 80%; /* More width for tablets */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard-container {
+      margin-left: 0;
+      padding: 16px;
+    }
+  
+    .dashboard-content {
+      width: 100%;
+    }
+  
+    .dashboard-header h1 {
+      font-size: 20px;
+    }
+  
+    .dashboard-content .text h2 {
+      font-size: 20px;
+    }
+  
+    .dashboard-content .text p {
+      font-size: 14px;
+    }
+  }
+  

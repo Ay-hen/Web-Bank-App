@@ -1,0 +1,119 @@
+<app-dashboard-navbar></app-dashboard-navbar>
+
+<div class="container">
+    <div class="buttons">
+        <button 
+            (click)="selectedTab = 'tab1'" 
+            [class.active]="selectedTab === 'tab1'">View All</button>
+        <button 
+            (click)="selectedTab = 'tab2'" 
+            [class.active]="selectedTab === 'tab2'">
+            Create User
+        </button>
+    </div>
+
+    @switch (selectedTab) {
+        @case ('tab1') {
+            <div class="customers-header">
+                <h2>All Customers</h2>
+                <div class="actions">
+                    <input
+                        type="text"
+                        [value]="searchQuery()"
+                        (input)="searchQuery.set($any($event.target).value)"
+                        placeholder="Search customers..."
+                    />
+
+                    <div class="custom-select-wrapper">
+                        <span class="select-label">sort by :</span>
+                        <select (change)="sortBy.set($any($event.target).value)">
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                        </select>
+                        <img src="icons/arrow.svg" alt="Arrow" class="custom-arrow" />
+                    </div>
+
+                    
+                </div>
+            </div>
+
+            <!-- Table Head -->
+            <div class="customers-table-head">
+                <div>Name</div>
+                <div>Amount</div>
+                <div>Phone Number</div>
+                <div>Email</div>
+                <div>Account Status</div>
+                <div>Creation Date</div>
+                <div></div>
+            </div>
+
+            <!-- Table Body -->
+            <div class="customers-list">
+                @for (customer of filteredCustomers(); track customer.id) {
+                    <div class="customer-row">
+                        <div>{{ customer.name }}</div>
+                        <div>{{ customer.amount }}</div>
+                        <div>{{ customer.phone }}</div>
+                        <div>{{ customer.email }}</div>
+                        <div>{{ customer.status }}</div>
+                        <div>{{ customer.creationDate }}</div>
+
+                        <div class="download" 
+                            (click)="toggleDownloadOptions(customer)"
+                            [class.active]="activeDownloadCustomer() === customer">
+                        <img src="icons/download.svg" class="download-icon">
+                        
+                        @if (activeDownloadCustomer() === customer) {
+                            <div class="report-options">
+                            <div class="icon-button" (click)="downloadReport(customer, 'csv'); $event.stopPropagation()">
+                                <img src="icons/csv.svg" alt="CSV Export">
+                            </div>
+                            <div class="icon-button" (click)="downloadReport(customer, 'pdf'); $event.stopPropagation()">
+                                <img src="icons/pdf.svg" alt="PDF Export">
+                            </div>
+                            </div>
+                        }
+                        </div>
+                        <div class="more-wrapper">
+                            <img src="icons/more.svg" class="more" (click)="toggleMore(customer)">
+                    
+                            @if (activePopoverCustomer() === customer) {
+                                
+                                <div class="popover active">
+                                <ul>
+                                    <li (click)="viewProfile(customer)">
+                                        <img src="icons/view.svg" alt=""> <span>View Profile</span>
+                                    </li>
+                                    <li class = "block" (click)="blockCustomer(customer)">
+                                        <img src="icons/block.svg" alt=""><span>Block</span> 
+                                    </li>
+                                </ul>
+                    
+                                
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </div>
+            <div class="pagination-controls">
+                <img src="icons/arrow_left.svg" (click)="goToPreviousPage()" />
+                <span>{{currentPage() + 1}}</span> 
+                <img src="icons/arrow_right.svg" (click)="goToNextPage()" />
+            </div>
+
+
+
+        }
+        @case ('tab2') {
+        <h2>Tab 2 Content</h2>
+        <p>This is the content for Tab 2.</p>
+        }
+        
+        @default {
+        <h2>Select a tab to view content</h2>
+        }
+    }
+</div>
