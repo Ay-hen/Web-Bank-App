@@ -33,7 +33,7 @@ app-dashboard-navbar {
 .container {
     margin-left: 280px; /* Adjusted to center content with extra 1rem */
     padding: 24px;
-    height: 90vh;
+    min-height: 30rem;
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -41,7 +41,7 @@ app-dashboard-navbar {
     text-align: center;
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    margin-top: 2rem; /* Add top margin to push content below the navbar */
+    margin-top: 0.57rem; /* Add top margin to push content below the navbar */
     margin-right:30px; /* Keeps space on the right */
 }
 
@@ -56,7 +56,7 @@ app-dashboard-navbar {
     padding-bottom: 8px;
 }
 
-button {
+.head-btn {
     position: relative;
     padding: 12px 12px;
     border: none;
@@ -73,7 +73,7 @@ button {
 }
 
 /* Underline animation */
-button::after {
+.head-btn::after {
     content: '';
     position: absolute;
     bottom: 6px; /* slight spacing from text */
@@ -87,12 +87,12 @@ button::after {
 }
 
 /* On hover - animate underline */
-button:hover::after {
+.head-btn:hover::after {
     transform: translateX(-50%) scaleX(1);
 }
 
 /* When active - keep the underline shown */
-button.active::after {
+.head-btn.active::after {
     transform: translateX(-50%) scaleX(1);
 }
 
@@ -304,7 +304,7 @@ p {
 /* Table Head Styles */
 .customers-table-head {
     display: grid;
-    grid-template-columns: 1fr 1fr 1.25fr 2fr 1.75fr 1.75fr 0.1fr 0.1fr;
+    grid-template-columns: 1fr 1fr 2fr 2fr 1fr 1.75fr 0.1fr 0.1fr;
     gap: 2rem;
     padding: 1rem 1.5rem;
     font-weight: 600;
@@ -322,6 +322,19 @@ p {
     justify-items: center;
 
     animation: fadeIn 0.4s ease-out;
+}
+
+.amount{
+    padding-left: 2.4rem;
+}
+.number{
+    //padding-left: 1rem;
+}
+.email{
+    padding-left: 1rem;
+}
+.status{
+    //padding-left: 0.2rem;
 }
 
 /* Customer Row Styles */
@@ -353,10 +366,9 @@ p {
 
 
 .customer-row:hover {
-    //transform: translateY(-0.75px);
-    //box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border-color: #e9d5ff;
-    z-index: 1;
+
 }
 
 .customer-row div {
@@ -391,11 +403,11 @@ p {
 .more-wrapper {
     position: relative;
     text-align: center;
-    z-index: 1; /* Base z-index for inactive state */
+    z-index: 1; 
     
     &:hover,
     &:has(.popover.active) {
-        z-index: 100; /* Brings this specific wrapper above others when active */
+        z-index: 100;
     }
 }
 
@@ -404,7 +416,7 @@ p {
 
 /* Download Button */
 .download {
-    position: relative; /* Needed for absolute positioning of dropdown */
+    position: relative;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -555,7 +567,6 @@ p {
   /* Popover Styles */
   .popover {
     position: absolute;
-    top: calc(100% + 8px);
     right: 0;
     background: white;
     border-radius: 8px;
@@ -567,9 +578,12 @@ p {
     visibility: hidden;
     transform: translateY(-5px);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-  
-    /* Arrow indicator */
+    z-index: 1001;
+    
+    /* Default position (for most rows) */
+    top: calc(100% + 8px);
+    
+    /* Arrow indicator (default down arrow) */
     &::before {
       content: '';
       position: absolute;
@@ -583,18 +597,38 @@ p {
       filter: drop-shadow(0 -2px 1px rgba(0,0,0,0.05));
     }
   
+    /* Last row adjustment - appears above */
+    .customer-row:last-child & {
+      bottom: calc(100% + 8px);
+      top: auto;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+      transform: translateY(5px);
+      
+      &::before {
+        bottom: auto;
+        top: 100%;
+        border-bottom: none;
+        border-top: 8px solid white;
+        filter: drop-shadow(0 2px 1px rgba(0,0,0,0.05));
+      }
+    }
+  
     &.active {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
+      
+      .customer-row:last-child & {
+        transform: translateY(0);
+      }
     }
-  }
   
-  /* List Items */
-  .popover ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    /* Rest of your existing styles */
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
   }
   
   .popover ul li {
@@ -774,14 +808,14 @@ p {
 }
 
 .pagination-controls img {
-    width: 20px;  /* Adjust the size of the arrows */
-    height: 20px;
+    width: 30px; 
+    height: 30px;
     cursor: pointer;
     transition: transform 0.3s ease;
 }
 
 .pagination-controls img:hover {
-    transform: scale(1.1);
+    transform: scale(1.2);
 }
 
 .pagination-controls span {
@@ -794,3 +828,336 @@ p {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+
+
+/* ************************************************* Tab 2 ************************************************* */
+
+
+/* Tab 2 - Create User Form Styles */
+.tab-content {
+    width: 100%;
+}
+
+.tab-content:hover{
+    box-shadow:  0 4px 12px rgba(0, 0, 0, 0.00008);
+}
+
+.role-select-container {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .role-label {
+        display: block;
+        margin-right: 1rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9375rem;
+    }
+    
+    .select-wrapper2 {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      
+      .role-dropdown {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        appearance: none;
+        background-color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+      }
+      
+      
+    }
+  }
+  
+  .user-form-container {
+
+    width: 100%;
+    h3{
+        margin-bottom: 18px;
+    }
+    
+    .form-group {
+        display: grid;
+        grid-template-columns: repeat(2, 0.5fr);
+        align-items: center;
+        gap: 0rem;
+        margin-bottom: 8px;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        
+      .form-input {
+        width: 25rem;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+        
+        &:focus {
+          outline: none;
+          border-color: #6366f1;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+      }
+    }
+  }
+  
+  /* Permissions Dropdown Styles */
+  .multi-select-permissions {
+    width: 25rem;
+    margin-left: 18.2rem;
+    margin-top: 12px;
+    position: relative; 
+    
+    .dropdown-header {
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: white;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        border-color: #9ca3af;
+      }
+      
+      .selected-count {
+        font-weight: 500;
+        color: #6366f1;
+      }
+      
+      .placeholder {
+        color: #9ca3af;
+      }
+      
+      .dropdown-arrow {
+        color: #6b7280;
+        font-size: 0.875rem;
+      }
+    }
+    
+    .dropdown-content {
+      position: absolute;
+      bottom: 100%; 
+      left: 0;
+      width: 25rem;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background-color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+      margin-bottom: 0.5rem; // Changed from margin-top to margin-bottom
+      transform-origin: bottom; // Adjust transform origin for animations
+      
+      // Add arrow pointing down (now that dropdown is above)
+      &::before {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 20px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid white;
+        filter: drop-shadow(0 2px 1px rgba(0,0,0,0.05));
+      }
+    }
+    
+    // Rest of your existing styles remain the same...
+    .search-container {
+      padding: 0.75rem;
+      border-bottom: 1px solid #f3f4f6;
+      
+      .search-input {
+        width: 23rem;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 0.9375rem;
+        
+        &:focus {
+          outline: none;
+          border-color: #6366f1;
+        }
+      }
+    }
+    
+    .selected-permissions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-bottom: 1px solid #f3f4f6;
+      background-color: #f9fafb;
+    }
+    
+    .permission-chip {
+      background-color: #e0e7ff;
+      color: #4338ca;
+      padding: 0.375rem 0.75rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      
+      .remove-chip {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-size: 1rem;
+        line-height: 1;
+        color: #6366f1;
+        display: flex;
+        align-items: center;
+        
+        &:hover {
+          color: #4338ca;
+        }
+      }
+    }
+    
+    .options-container {
+      padding: 0.5rem 0;
+      
+      .option {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: #f3f4f6;
+        }
+        
+        .checkbox {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 1rem;
+          height: 1rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.25rem;
+          margin-right: 0.75rem;
+          font-size: 0.75rem;
+          color: #6366f1;
+        }
+      }
+    }
+    
+    .no-results {
+      padding: 1rem;
+      color: #6b7280;
+      text-align: center;
+      font-size: 0.875rem;
+    }
+  }
+  
+  /* Form Actions */
+  .form-actions {
+    margin-top: 1rem;
+    text-align: center;
+    
+    .create-button {
+      background-color: #6366f1;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: #4f46e5;
+      }
+      
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+      }
+    }
+}
+
+
+select{
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    background-color: white;
+    
+    &:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+}
+/*
+.custom-select {
+    position: relative;
+    width: 200px;
+  }
+  
+  .selected-option {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    margin-top: 4px;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .option {
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 6px;
+    margin: 4px;
+    background-color: #f3f0ff;
+    transition: background-color 0.2s;
+  }
+  
+  .option:hover {
+    background-color: #e5e0ff;
+  }*/

@@ -4,10 +4,10 @@
     <div class="buttons">
         <button 
             (click)="selectedTab = 'tab1'" 
-            [class.active]="selectedTab === 'tab1'">View All</button>
+            [class.active]="selectedTab === 'tab1'" class="head-btn">View All</button>
         <button 
             (click)="selectedTab = 'tab2'" 
-            [class.active]="selectedTab === 'tab2'">
+            [class.active]="selectedTab === 'tab2'" class="head-btn">
             Create User
         </button>
     </div>
@@ -20,13 +20,13 @@
                     <input
                         type="text"
                         [value]="searchQuery()"
-                        (input)="searchQuery.set($any($event.target).value)"
+                        (input)="searchQuery.set($any($event).target.value)"
                         placeholder="Search customers..."
                     />
 
                     <div class="custom-select-wrapper">
                         <span class="select-label">sort by :</span>
-                        <select (change)="sortBy.set($any($event.target).value)">
+                        <select (change)="sortBy.set($any($event).target.value)">
                             <option value="newest">Newest</option>
                             <option value="oldest">Oldest</option>
                         </select>
@@ -40,11 +40,11 @@
             <!-- Table Head -->
             <div class="customers-table-head">
                 <div>Name</div>
-                <div>Amount</div>
-                <div>Phone Number</div>
-                <div>Email</div>
-                <div>Account Status</div>
-                <div>Creation Date</div>
+                <div class="amount">Amount</div>
+                <div class="number">Phone Number</div>
+                <div class="email">Email</div>
+                <div class="status">Status</div>
+                <div class="creation-date">Creation Date</div>
                 <div></div>
             </div>
 
@@ -98,19 +98,266 @@
                 }
 
             </div>
+
             <div class="pagination-controls">
-                <img src="icons/arrow_left.svg" (click)="goToPreviousPage()" />
-                <span>{{currentPage() + 1}}</span> 
-                <img src="icons/arrow_right.svg" (click)="goToNextPage()" />
-            </div>
+                <!-- Left Arrow -->
+                <img 
+                    src="icons/arrow_left.svg" 
+                    (click)="goToPreviousPage()" 
+                    [class.disabled]="!hasPreviousPage()" 
+                    [attr.aria-disabled]="!hasPreviousPage()"
+                />
 
+                <!-- Current Page -->
+                <span>{{ currentPage() + 1 }}</span> 
 
+                <!-- Right Arrow -->
+                <img 
+                    src="icons/arrow_right.svg" 
+                    (click)="goToNextPage()" 
+                    [class.disabled]="!hasNextPage()" 
+                    [attr.aria-disabled]="!hasNextPage()"
+                />
+            </div> 
 
         }
+
+
+
+
+
         @case ('tab2') {
-        <h2>Tab 2 Content</h2>
-        <p>This is the content for Tab 2.</p>
-        }
+            <div class="tab-content">
+            
+                <div class="role-select-container">
+                    <label for="roleSelect" class="role-label">Select Role:</label>
+                    <div class="select-wrapper2">
+                        <!-- <div class="custom-select" (click)="toggleDropdown()">
+                            <div class="selected-option">
+                              {{ selectedRole() || 'Select role' }}
+                              <span class="arrow">▼</span>
+                            </div>
+                            @if (showDropdown()) {
+                                <div class="options" >
+                                    @for (role of roles; track  role.name) {
+                                        <div class="option" 
+                                            (click)="onRoleSelect(role.value)">
+                                            {{ role.name }}
+                                        </div>
+                                    }
+                                    
+                                    </div>
+                            }
+                            
+                        </div> -->
+                        <select id="roleSelect" (change)="selectRole($event)" class="role-dropdown">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    <div class="select-arrow"></div>
+                    </div>
+                </div>
+            
+                @if (selectedRole() === 'user') {
+                    <div class="user-form-container">
+                    <h3>Create User</h3>
+            
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input
+                        type="text"
+                        id="username"
+                        placeholder="Enter username"
+                        (input)="onInputChange('username', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input
+                        type="email"
+                        id="email"
+                        placeholder="Enter email address"
+                        (input)="onInputChange('email', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter password"
+                        (input)="onInputChange('password', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Confirm password"
+                        (input)="onInputChange('confirmPassword', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+            
+                    <!-- Admin-specific permissions section -->
+            
+            
+                    <div class="form-actions">
+                        <button
+                        class="create-button"
+                        (click)="createUser()"
+                        >
+                        create user
+                        </button>
+                    </div>
+                    </div>
+                }
+
+                @if (selectedRole() == "admin") {
+                    <div class="user-form-container">
+                        <h3>Create Admin</h3>
+
+                        <div class="form-group">
+                        <label for="username">Username</label>
+                        <input
+                        type="text"
+                        id="username"
+                        placeholder="Enter username"
+                        (input)="onInputChange('username', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input
+                        type="email"
+                        id="email"
+                        placeholder="Enter email address"
+                        (input)="onInputChange('email', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter password"
+                        (input)="onInputChange('password', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Confirm password"
+                        (input)="onInputChange('confirmPassword', $any($event).target.value)"
+                        class="form-input"
+                        >
+                    </div>
+
+                    <div class="multi-select-permissions">
+                        <div class="dropdown-header" (click)="toggleDropdown()">
+                            @if (selectedPermissions().length > 0) {
+                                <span class="selected-count" >
+                                    {{selectedPermissions().length}} selected
+                                </span>
+                            }
+
+                            @if (selectedPermissions().length === 0) {
+                                <span class="placeholder">
+                                    Select permissions...
+                                </span>
+                            }
+
+                            <span class="dropdown-arrow"> + </span>
+                        </div>
+
+                    @if (showDropdown()) {
+                        <div class="dropdown-content" (click)="$event.stopPropagation()">
+                            <!-- Search input -->
+                            <div class="search-container">
+                            <input
+                                type="text"
+                                placeholder="Search permissions..."
+                                (input)="filterPermissionsSearch($any($event).target.value)"
+                                class="search-input"
+                                [value]="permissionSearch()"
+                                autofocus
+                            >
+                            </div>
+                    
+                            <!-- Selected permissions chips -->
+                            @if (selectedPermissions().length > 0) {
+                            <div class="selected-permissions">
+                                @for (perm of selectedPermissions(); track perm) {
+                                <div class="permission-chip">
+                                    <span>{{perm}}</span>
+                                    <button
+                                    class="remove-chip"
+                                    (click)="removePermission(perm); $event.stopPropagation()"
+                                    aria-label="Remove permission"
+                                    >
+                                    &times;
+                                    </button>
+                                </div>
+                                }
+                            </div>
+                            }
+                    
+                            <!-- Permissions list -->
+                            <div class="options-container">
+                                @if (filteredPermissions().length > 0) {
+                                    @for (perm of filteredPermissions(); track perm) {
+                                    <div class="option"
+                                        (click)="addPermission(perm); $event.stopPropagation()"
+                                    >
+                                        <span class="checkbox">
+                                        @if (isSelected(perm)) { }
+                                        </span>
+                                        <span class="option-label">{{perm}}</span>
+                                    </div>
+                                    }
+                                } @else {
+                                    <div class="no-results">
+                                    @if (permissionSearch()) {
+                                        No permissions found for "{{permissionSearch()}}"
+                                    } @else {
+                                        No permissions available
+                                    }
+                                    </div>
+                                }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="form-actions">
+                            <button
+                                class="create-button"
+                                (click)="createUser()"
+                            >
+                                create admin
+                            </button>
+                    </div>
+                </div>
+                }
+        </div>
+            
+
+            }
+
         
         @default {
         <h2>Select a tab to view content</h2>
