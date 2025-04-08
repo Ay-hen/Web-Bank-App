@@ -6,11 +6,7 @@
             (click)="selectedTab = 'tab1'" 
             [class.active]="selectedTab === 'tab1'" class="head-btn">View All
         </button>
-        <button 
-            (click)="selectedTab = 'tab2'" 
-            [class.active]="selectedTab === 'tab2'" class="head-btn">
-            Reply
-        </button>
+        
         <button 
             (click)="selectedTab = 'tab3'" 
             [class.active]="selectedTab === 'tab3'" class="head-btn">
@@ -19,9 +15,6 @@
     </div>
 
     @switch (selectedTab) {
-
-
-
         @case ('tab1') {
             <div class="feedbacks-header">
                 <h2>All Feedback</h2>
@@ -41,8 +34,6 @@
                         </select>
                         <img src="icons/arrow.svg" alt="Arrow" class="custom-arrow" />
                     </div>
-
-                    
                 </div>
             </div>
 
@@ -52,60 +43,65 @@
                 <div class="amount">Category</div>
                 <div class="number">Date</div>
                 <div class="email">Message</div>
-                <div class="status">Status</div>
-                <div></div>
+                <div class="status-head"><span>Status</span></div>
+                <div> Reply</div>
             </div>
-
 
             <div class="feedbacks-list">
                 @for (feedback of filteredFeedbacks(); track feedback.id) {
                     <div class="feedback-row">
                         <div>{{ feedback.name }}</div>
-                        <div>{{ feedback.category }}</div>
+                        <div class="category">{{ feedback.category }}</div>
                         <div>{{ feedback.creationDate }}</div>
-                        <div class="message">{{ feedback.message }}</div>
-                        <div>{{ feedback.status }}</div>
-
-                        
-                        
-                        
-                        <div class="more-wrapper">
-                            <img src="icons/more.svg" class="more" (click)="toggleMore(feedback)">
-                    
-                            @if (activePopoverFeedback() === feedback) {
+                        <div class="message-wrapper">
+                            <div class="message clamp">
                                 
-                                <div class="popover active">
-                                <ul>
-                                    <li (click)="setStatus(feedback.id, 'resolved')">
-                                        <img src="icons/view.svg" alt=""> <span>resolve</span>
-                                    </li>
-                                    <li class = "block" (click)="setStatus(feedback.id, 'unresolved')">
-                                        <img src="icons/block.svg" alt=""><span>Block</span> 
-                                    </li>
-                                </ul>
-                    
+                                <a class="show-link" (click)="openMessagePopup(feedback)">show message</a>
                                 
+                            </div>
+                        </div>
+            
+                        <!-- Status Column -->
+                        <div class="status-wrapper">
+                            @if (feedback.status.toLowerCase() === 'pending') {
+                                <div class="status clickable-status" (click)="toggleMore(feedback)">
+                                    {{ feedback.status }}
+                                    @if (activePopoverFeedback() === feedback) {
+                                        <div class="popover active">
+                                            <ul>
+                                                <li (click)="setStatus(feedback, 'resolved'); $event.stopPropagation()">
+                                                    <span>Resolve</span>
+                                                </li>
+                                                <li class="block" (click)="setStatus(feedback, 'unresolved'); $event.stopPropagation()">
+                                                    <span>Block</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    }
                                 </div>
+                            } @else {
+                                <div class="status">{{ feedback.status }}</div>
+                            }
+                        </div>
+                        <div class="reply-wrapper">
+                            @if (feedback.status.toLowerCase() === 'pending') {
+                                <button class="reply-btn" (click)="replyToFeedback(feedback)">Reply</button>
+                            } @else {
+                                <button class="reply-btn disabled" disabled>Replied</button>
                             }
                         </div>
                     </div>
-                    }
-                </div>
-
+                }
+            </div>
 
             <div class="pagination-controls">
-                <!-- Left Arrow -->
                 <img 
                     src="icons/arrow_left.svg" 
                     (click)="goToPreviousPage()" 
                     [class.disabled]="!hasPreviousPage()" 
                     [attr.aria-disabled]="!hasPreviousPage()"
                 />
-
-                <!-- Current Page -->
                 <span>{{ currentPage() + 1 }}</span> 
-
-                <!-- Right Arrow -->
                 <img 
                     src="icons/arrow_right.svg" 
                     (click)="goToNextPage()" 
@@ -115,18 +111,43 @@
             </div> 
         }
 
-
-
         @case ('tab2') {
-            
-        }
+            <div class="reply-container">
+                <h2>Reply to Feedback</h2>
+                @if (selectedFeedback()) {
+                    <div class="feedback-details">
+                        <p><span>Name     :</span> {{ selectedFeedback()?.name || "" }}</p>
+                        <p><span>Category :</span> {{ selectedFeedback()?.category || ""}}</p>
+                        <p><span>Status   :</span> {{ selectedFeedback()?.status || ""}}</p>
+                    </div>
 
-
+                    <textarea placeholder="Type your reply here..." class="reply-box"></textarea>
+                
+                    <div class="button-group">
+                        <button class="go-back" (click)="selectedTab = 'tab1'">Back</button>
+                        <button class="reply-submit" (click)="submitReply()">Send Reply</button>
+                    </div>
+                    } @else {
+                    <h3>Select a Feedback</h3>
+                    }
+            </div>
+            }
 
         @case ('tab3') {
-            
+            <!-- Tab 3 content -->
         }
 
         @default {}
+    }
+
+    <!-- Message Popup -->
+    @if (selectedMessage()) {
+        <div class="message-popup-overlay" (click)="closePopup()">
+            <div class="message-popup" (click)="$event.stopPropagation()">
+                <h3>Message from {{ selectedMessage()?.name }}</h3>
+                <p>{{ selectedMessage()?.message }}</p>
+                <button (click)="closePopup()">Close</button>
+            </div>
+        </div>
     }
 </div>

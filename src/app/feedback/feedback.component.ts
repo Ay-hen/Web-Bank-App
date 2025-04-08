@@ -20,6 +20,17 @@ type Feedback = {
   styleUrl: './feedback.component.scss'
 })
 export class FeedbackComponent {
+submitReply() {
+throw new Error('Method not implemented.');
+}
+
+  selectedFeedback = signal<Feedback | null>(null);
+  activeTab = signal<'tab1' | 'tab2'>('tab1');
+
+  replyToFeedback(feedback: Feedback) {
+    this.selectedFeedback.set(feedback);
+    this.selectedTab = 'tab2';
+  }
   selectedTab : string = 'tab1';
   searchQuery = signal('');
     sortBy = signal('newest');
@@ -31,7 +42,7 @@ export class FeedbackComponent {
     itemsPerPage = 4;  
 
   feedbacks = signal([
-    {id: 1, name: 'John Doe', category: 'Great service!', creationDate: '2023-10-01', message: 'I had a wonderful experience with your service.', status: 'pending'},
+    {id: 1, name: 'John Doe', category: 'Great service!', creationDate: '2023-10-01', message: 'Meet the OSI Model, the 7-layer cake of networking. Each layer plays a crucial role in moving data, ensuring smooth communication between devices. From physical cables (Layer 1) to web browsers (Layer 7), this model keeps the internet running!', status: 'pending'},
     {id: 2, name: 'Jane Smith', category: 'Needs improvement', creationDate: '2023-09-15', message: 'The service was okay, but there is room for improvement.', status: 'solved'},
     {id: 3, name: 'Alice Johnson', category: 'Excellent', creationDate: '2023-08-20', message: 'I am very satisfied with the service provided.', status: 'rejected'},
     {id: 4, name: 'Bob Brown', category: 'Not satisfied', creationDate: '2023-07-10', message: 'I was not happy with the service I received.', status: 'pending'},
@@ -104,6 +115,7 @@ export class FeedbackComponent {
     }
 
     toggleMore(feedback : Feedback){
+      console.log(feedback);
       if (this.activePopoverFeedback() === feedback) {
         this.activePopoverFeedback.set(null); 
       } else {
@@ -121,5 +133,17 @@ export class FeedbackComponent {
             this.activePopoverFeedback.set(null);
         }
     }
+
+    selectedMessage = signal<Feedback | null>(null);
+
+    openMessagePopup(feedback: Feedback) {
+      this.selectedMessage.set(feedback);
+    }
+  
+    closePopup() {
+      this.selectedMessage.set(null);
+    }
+  
+    
 
 }
