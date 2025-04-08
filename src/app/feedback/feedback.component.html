@@ -116,9 +116,9 @@
                 <h2>Reply to Feedback</h2>
                 @if (selectedFeedback()) {
                     <div class="feedback-details">
-                        <p><span>Name     :</span> {{ selectedFeedback()?.name || "" }}</p>
-                        <p><span>Category :</span> {{ selectedFeedback()?.category || ""}}</p>
-                        <p><span>Status   :</span> {{ selectedFeedback()?.status || ""}}</p>
+                        <p><span>Name     </span> {{ selectedFeedback()?.name || "" }}</p>
+                        <p><span>Category </span> {{ selectedFeedback()?.category || ""}}</p>
+                        <p><span>Status   </span> {{ selectedFeedback()?.status || ""}}</p>
                     </div>
 
                     <textarea placeholder="Type your reply here..." class="reply-box"></textarea>
@@ -133,9 +133,63 @@
             </div>
             }
 
-        @case ('tab3') {
-            <!-- Tab 3 content -->
-        }
+            @case ('tab3') {
+                <div class="generate-feedback-container">
+                    <h2>Generate User Feedbacks</h2>
+
+                    <input
+                        class = "username-input"
+                        type="text"
+                        placeholder="Enter username"
+                        [value]="username()"
+                        (input)="username.set($any($event).target .value)"
+                        />
+                        <div class="download-buttons">
+                            <div class="hover-text-wrapper"
+                                (mouseenter)="showTooltip()"
+                                (mouseleave)="hideTooltip()"
+                                (mousemove)="updateTooltipPosition($event)">
+
+                                    <button class="download-btn hover-text-trigger" (click)="downloadFeedbacks('pdf',username())">
+                                        <img src="icons/pdf.svg" alt="PDF" />
+                                    </button>
+
+                                    @if (tooltipVisible()) {
+                                        <div class="floating-tooltip"
+                                            style="
+                                            top: {{ tooltipY() }}px;
+                                            left : {{ tooltipX() }}px;
+                                            " >
+                                        Download PDF
+                                        </div>
+                                    }
+                            </div>
+
+                            <div class="hover-text-wrapper"
+                                (mouseenter)="showCsvTooltip()"
+                                (mouseleave)="hideCsvTooltip()"
+                                (mousemove)="updateCsvTooltipPosition($event)">
+
+                                <button class="download-btn" (click)="downloadFeedbacks('csv',username())">
+                                    <img src="icons/csv.svg" alt="CSV" />
+                                </button>
+
+                                @if (csvTooltipVisible()) {
+                                    <div class="floating-tooltip"
+                                        style="
+                                        top: {{ csvTooltipY() }}px;
+                                        left: {{ csvTooltipX() }}px;
+                                        ">
+                                    Download CSV
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                
+            }
+
 
         @default {}
     }
