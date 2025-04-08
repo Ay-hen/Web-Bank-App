@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, HostListener, signal } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 
 
@@ -119,6 +119,7 @@ export class UserManagementComponent  {
     console.log('Blocked:', customer);
   }
 
+  // Download report in CSV or PDF format
   downloadReport(customer: any, format: 'csv' | 'pdf') {
     console.log(`Downloading ${format.toUpperCase()} report for:`, customer);
     this.showReportPopover.set(false);
@@ -341,4 +342,20 @@ export class UserManagementComponent  {
     return this.selectedPermissions().includes(perm);
   }
 
+  @HostListener('document:click', ['$event'])
+      onDocumentClick(event: MouseEvent): void {
+          const target = event.target as HTMLElement;
+          if (!target.closest('.more-wrapper')) {
+              this.activePopoverCustomer.set(null);
+          }
+          if (!target.closest('.dropdown-header')) {
+              this.showDropdown.set(false);
+          }
+          if (!target.closest('.report-popover')) {
+              this.showReportPopover.set(false);
+          }
+          if (!target.closest('.download')) {
+              this.activeDownloadCustomer.set(null);
+          }
+      }
 }
