@@ -64,7 +64,7 @@
                         <!-- Status Column -->
                         <div class="status-wrapper">
                             @if (feedback.status.toLowerCase() === 'pending') {
-                                <div class="status clickable-status" (click)="toggleMore(feedback)">
+                                <div class="status clickable-status pending" (click)="toggleMore(feedback)">
                                     {{ feedback.status }}
                                     @if (activePopoverFeedback() === feedback) {
                                         <div class="popover active">

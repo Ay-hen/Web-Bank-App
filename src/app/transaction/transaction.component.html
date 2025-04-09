@@ -1,0 +1,168 @@
+<app-dashboard-navbar></app-dashboard-navbar>
+
+<div class="container">
+    <div class="buttons">
+        <button 
+            (click)="setTab('tab1')" 
+            [class.active]="selectedTab === 'tab1'" class="head-btn">View
+        </button>
+        
+        <button 
+            (click)="setTab('tab2')" 
+            [class.active]="selectedTab === 'tab2'" class="head-btn">
+            Reports
+        </button>
+        
+        
+        <button 
+            (click)="setTab('tab3')" 
+            [class.active]="selectedTab === 'tab3'" class="head-btn">
+            Visualization
+        </button>
+    </div> 
+
+    @switch (selectedTab) {
+        @case ('tab1') {
+            <div class="transactions-header">
+                <h2>All Transactions</h2>
+                <div class="actions">
+                    <input
+                        type="text"
+                        [value]="searchQuery()"
+                        (input)="searchQuery.set($any($event).target.value)"
+                        placeholder="Search transaction..."
+                    />
+
+                    <div class="custom-select-wrapper">
+                        <span class="select-label">sort by :</span>
+                        <select (change)="sortBy.set($any($event).target.value)">
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                        </select>
+                        <img src="icons/arrow.svg" alt="Arrow" class="custom-arrow" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Head -->
+            <div class="transactions-table-head">
+                <div>Sender Name</div>
+                <div class="amount">Amount</div>
+                <div>Recepient Name</div>
+                <div class="creation-date">Creation Date</div>
+                <div class="status">Status</div>
+            </div>
+
+            <div class="transactions-list">
+                @for (transaction of filteredTransactions(); track transaction.id) {
+                    <div class="transaction-row">
+                        <div>{{ transaction.senderName }}</div>
+                        <div class="amount">{{ transaction.amount }}</div>
+                        <div>{{ transaction.recepientName }}</div>
+                        <div>{{ transaction.creationDate }}</div>
+
+                        @if(transaction.status === 'pending') {
+                            <div class="status pending">
+                                {{ transaction.status }}
+                            </div>
+                        } @else if (transaction.status === 'completed') {
+                            <div class="status completed">
+                                {{ transaction.status }}
+                            </div>
+                        } @else  {
+                            <div class="status failed">
+                                {{ transaction.status }}
+                            </div>
+                        } 
+                    </div>
+                }
+            </div>
+
+            <div class="pagination-controls">
+                <!-- Left Arrow -->
+                <img 
+                    src="icons/arrow_left.svg" 
+                    (click)="goToPreviousPage()" 
+                    [class.disabled]="!hasPreviousPage()" 
+                    [attr.aria-disabled]="!hasPreviousPage()"
+                />
+
+                <!-- Current Page -->
+                <span>{{ currentPage() + 1 }}</span> 
+
+                <!-- Right Arrow -->
+                <img 
+                    src="icons/arrow_right.svg" 
+                    (click)="goToNextPage()" 
+                    [class.disabled]="!hasNextPage()" 
+                    [attr.aria-disabled]="!hasNextPage()"
+                />
+            </div> 
+        }
+
+        @case ('tab2') {
+            <div class="generate-feedback-container">
+                <h2>Generate User Transactions</h2>
+
+                <input
+                    class="username-input"
+                    type="text"
+                    placeholder="Enter username"
+                    [value]="username()"
+                    (input)="username.set($any($event).target.value)"
+                />
+                <div class="download-buttons">
+                    <div class="hover-text-wrapper"
+                        (mouseenter)="showTooltip()"
+                        (mouseleave)="hideTooltip()"
+                        (mousemove)="updateTooltipPosition($event)">
+                        <button class="download-btn hover-text-trigger" (click)="downloadTransactions('pdf',username())">
+                            <img src="icons/pdf.svg" alt="PDF" />
+                        </button>
+
+                        @if (tooltipVisible()) {
+                            <div class="floating-tooltip"
+                                style="
+                                top: {{ tooltipY() }}px;
+                                left : {{ tooltipX() }}px;
+                                ">
+                            Download PDF
+                            </div>
+                        }
+                    </div>
+
+                    <div class="hover-text-wrapper"
+                        (mouseenter)="showCsvTooltip()"
+                        (mouseleave)="hideCsvTooltip()"
+                        (mousemove)="updateCsvTooltipPosition($event)">
+                        <button class="download-btn" (click)="downloadTransactions('csv',username())">
+                            <img src="icons/csv.svg" alt="CSV" />
+                        </button>
+
+                        @if (csvTooltipVisible()) {
+                            <div class="floating-tooltip"
+                                style="
+                                top: {{ csvTooltipY() }}px;
+                                left: {{ csvTooltipX() }}px;
+                                ">
+                            Download CSV
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @case ('tab3') {
+            <div class="visualization-container">
+              <div class="chart-wrapper">
+                <canvas #barchart></canvas>
+              </div>
+            </div>
+        }
+
+        @default {
+            <h2>Select a tab to view content</h2>
+        }
+    }
+</div>

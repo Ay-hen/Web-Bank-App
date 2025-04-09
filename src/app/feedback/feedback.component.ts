@@ -243,12 +243,11 @@ throw new Error('Method not implemented.');
     }
 
     toggleMore(feedback : Feedback){
-      console.log(feedback);
+
       if (this.activePopoverFeedback() === feedback) {
         this.activePopoverFeedback.set(null); 
       } else {
         this.activePopoverFeedback.set(feedback);
-        
       }
     }
 

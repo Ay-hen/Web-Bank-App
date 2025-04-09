@@ -4,6 +4,7 @@ import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { UserManagementComponent } from './user-management/user-management.component';
 import { FeedbackComponent } from './feedback/feedback.component';
+import { TransactionComponent } from './transaction/transaction.component';
 
 export const routes: Routes = [
 
@@ -36,6 +37,11 @@ export const routes: Routes = [
     {
         path : 'feedback',
         component : FeedbackComponent
+    },
+
+    {
+        path: 'transaction',
+        component: TransactionComponent
     }
 
 ];

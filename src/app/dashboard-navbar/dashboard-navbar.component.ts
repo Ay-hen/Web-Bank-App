@@ -9,9 +9,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './dashboard-navbar.component.scss'
 })
 export class DashboardNavbarComponent {
-logout() {
-throw new Error('Method not implemented.');
-}
+  logout() {
+    throw new Error('Method not implemented.');
+  }
+
   navItems = [
     { path: '/dashboard', icon: 'icons/dashboard.svg', label: 'Dashboard', permission: 'VIEW_DASHBOARD' },
     { path: '/users', icon: 'icons/customer.svg', label: 'User Management', permission: 'MANAGE_USERS' },
