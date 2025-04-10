@@ -78,26 +78,26 @@
                 }
             </div>
 
-            <div class="pagination-controls">
-                <!-- Left Arrow -->
-                <img 
-                    src="icons/arrow_left.svg" 
-                    (click)="goToPreviousPage()" 
-                    [class.disabled]="!hasPreviousPage()" 
-                    [attr.aria-disabled]="!hasPreviousPage()"
-                />
-
-                <!-- Current Page -->
-                <span>{{ currentPage() + 1 }}</span> 
-
-                <!-- Right Arrow -->
-                <img 
-                    src="icons/arrow_right.svg" 
-                    (click)="goToNextPage()" 
-                    [class.disabled]="!hasNextPage()" 
-                    [attr.aria-disabled]="!hasNextPage()"
-                />
-            </div> 
+            @if (transactions().length > 4) {
+                <div class="pagination-controls">
+                    <!-- Left Arrow -->
+                    <img 
+                        src="icons/arrow_left.svg" 
+                        (click)="goToPreviousPage()" 
+                        [class.disabled]="currentPage() === 0"
+                    />
+            
+                    <!-- Current Page -->
+                    <span>{{ currentPage() + 1 }} of {{ totalPages() }}</span>
+            
+                    <!-- Right Arrow -->
+                    <img 
+                        src="icons/arrow_right.svg" 
+                        (click)="goToNextPage()" 
+                        [class.disabled]="currentPage() === totalPages() - 1"
+                    />
+                </div>
+            } 
         }
 
         @case ('tab2') {

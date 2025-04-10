@@ -250,8 +250,8 @@ p {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    position: relative; /* Needed for absolute positioning of pagination */
-    height: 220px;
+    position: relative; 
+    height: 230px;
 }
 
 .transaction-row {
@@ -398,7 +398,13 @@ p {
     height: 30px;
     cursor: pointer;
     transition: transform 0.3s ease;
+
+    &.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+    }
 }
+
 
 .pagination-controls img:hover {
     transform: scale(1.2);
@@ -408,11 +414,6 @@ p {
     font-size: 1rem;
     font-weight: 600;
     color: #5932ea;
-}
-
-.pagination-controls img[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 

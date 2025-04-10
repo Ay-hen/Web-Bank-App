@@ -10,6 +10,7 @@ type Customer = {
   email: string;
   status: string;
   creationDate: string;
+  activities : any;
 };
 
 
@@ -40,12 +41,60 @@ export class UserManagementComponent  {
 
   // Dummy customer data
   customers = signal([
-    { id: 1, name: 'John Doe', amount: '$1000', phone: '123-456-7890', email: 'john@example.com', status: 'Active', creationDate: '2024-01-15' },
-    { id: 2, name: 'Conan Kun', amount: '$1000', phone: '0632887456', email: 'conan@example.com', status: 'Active', creationDate: '2024-01-15' },
-    { id: 3, name: 'Ayoub Hen', amount: '$1500', phone: '0636859674', email: 'ayoub@example.com', status: 'Active', creationDate: '2024-01-15' },
-    { id: 4, name: 'Zara Lune', amount: '$1200', phone: '0637774444', email: 'zara@example.com', status: 'Inactive', creationDate: '2024-02-18' },
-    { id: 5, name: 'Lucas M', amount: '$800', phone: '0633339876', email: 'lucas@example.com', status: 'Active', creationDate: '2024-03-10' },
-    { id: 6, name: 'Clara B', amount: '$2000', phone: '0634223456', email: 'clara@example.com', status: 'Active', creationDate: '2024-04-01' },
+    { id: 1, name: 'John Doe', amount: '$1000', phone: '123-456-7890', email: 'john@example.com', status: 'Active', creationDate: '2024-01-15',
+      activities:[
+        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
+        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
+        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
+        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
+        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
+      ]
+    },
+    { id: 2, name: 'Conan Kun', amount: '$1000', phone: '0632887456', email: 'conan@example.com', status: 'Active', creationDate: '2024-01-15',
+      activities:[
+        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
+        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
+        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
+        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
+        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
+      ]
+     },
+    { id: 3, name: 'Ayoub Hen', amount: '$1500', phone: '0636859674', email: 'ayoub@example.com', status: 'Active', creationDate: '2024-01-15',
+      activities:[
+        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
+        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
+        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
+        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
+        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
+      ]
+     },
+    { id: 4, name: 'Zara Lune', amount: '$1200', phone: '0637774444', email: 'zara@example.com', status: 'Inactive', creationDate: '2024-02-18',
+      activities:[
+        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
+        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
+        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
+        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
+        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
+      ]
+     },
+    { id: 5, name: 'Lucas M', amount: '$800', phone: '0633339876', email: 'lucas@example.com', status: 'Active', creationDate: '2024-03-10',
+      activities:[
+        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
+        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
+        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
+        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
+        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
+      ]
+     },
+    { id: 6, name: 'Clara B', amount: '$2000', phone: '0634223456', email: 'clara@example.com', status: 'Active', creationDate: '2024-04-01' ,
+      activities:[
+        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
+        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
+        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
+        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
+        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
+      ]
+    },
   ]);
 
   filteredCustomers = computed(() => {
@@ -154,7 +203,7 @@ export class UserManagementComponent  {
 
 
   totalPages(): number {
-    return Math.ceil(this.customers.length / this.itemsPerPage);
+    return Math.ceil(this.customers().length / this.itemsPerPage);
   }
   
   
@@ -358,4 +407,53 @@ export class UserManagementComponent  {
               this.activeDownloadCustomer.set(null);
           }
       }
+
+
+  selectedMessage = signal<Customer | null>(null);
+      
+          openMessagePopup(customer: Customer) {
+            if (this.activePopoverCustomer() === customer) {
+              this.activePopoverCustomer.set(null); 
+            }
+            this.selectedMessage.set(customer);
+          }
+  
+    closePopup() {
+            this.isClosing = true;
+      setTimeout(() => {
+          this.selectedMessage.set(null);
+          this.isClosing = false;
+      }, 300); 
+            this.selectedMessage.set(null);
+      }
+  
+  isClosing = false;
+  
+  
+  
+  
+      currentActivitiesPage = signal(0);
+  activitiesPerPage = 3;
+  
+  paginatedActivities = computed(() => {
+    const start = this.currentActivitiesPage() * this.activitiesPerPage;
+    return this.selectedMessage()?.activities.slice(start, start + this.activitiesPerPage) || [];
+  });
+  
+  totalActivitiesPages = computed(() => {
+    return Math.ceil((this.selectedMessage()?.activities.length || 0) / this.activitiesPerPage);
+  });
+  
+  nextActivitiesPage() {
+    if (this.currentActivitiesPage() < this.totalActivitiesPages() - 1) {
+      this.currentActivitiesPage.update(p => p + 1);
+    }
+  }
+  
+  prevActivitiesPage() {
+    if (this.currentActivitiesPage() > 0) {
+      this.currentActivitiesPage.update(p => p - 1);
+    }
+  }
+  
 }

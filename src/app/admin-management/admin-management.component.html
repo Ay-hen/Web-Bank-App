@@ -1,0 +1,239 @@
+<app-dashboard-navbar></app-dashboard-navbar>
+<div class="container">
+    <div class="buttons">
+        <button 
+            (click)="selectedTab = 'tab1'" 
+            [class.active]="selectedTab === 'tab1'" class="head-btn">View
+        </button>
+        
+        <button 
+            (click)="selectedTab = 'tab2'"
+            [class.active]="selectedTab === 'tab2'" class="head-btn">
+            Reset Password
+        </button>
+        
+        
+        <button 
+            (click)="selectedTab = 'tab3'" 
+            [class.active]="selectedTab === 'tab3'" class="head-btn">
+            Reset Access
+        </button>
+    </div> 
+
+    @switch (selectedTab) {
+        @case ('tab1') {
+            <div class="admins-header">
+                <h2>All Admins</h2>
+                <div class="actions">
+                    <input
+                        type="text"
+                        [value]="searchQuery()"
+                        (input)="searchQuery.set($any($event).target.value)"
+                        placeholder="Search admins..."
+                    />
+
+                    <div class="custom-select-wrapper">
+                        <span class="select-label">sort by :</span>
+                        <select (change)="sortBy.set($any($event).target.value)">
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                        </select>
+                        <img src="icons/arrow.svg" alt="Arrow" class="custom-arrow" />
+                    </div>
+
+                    
+                </div>
+            </div>
+
+            <!-- Table Head -->
+            <div class="admins-table-head">
+                <div class="id">ID</div>
+                <div>Name</div>
+                <div class="email">Email</div>
+                <div class="creation-date">Creation Date</div>
+                <div class="activity">Activity</div>
+                
+            </div>
+
+            <!-- Table Body -->
+            <div class="admins-list">
+                @for (admin of filteredAdmins(); track admin.id) {
+                    <div class="admin-row">
+                        <div>{{ admin.id}}</div>
+                        <div>{{ admin.name }}</div>
+                        <div>{{ admin.email }}</div>
+                        <div>{{ admin.creationDate }}</div>
+                        
+                        <div class="message-wrapper">
+                            <div class="message clamp">
+                                
+                                <a class="show-link" (click)="openMessagePopup(admin)">View Activities</a>
+                                
+                            </div>
+                        </div>
+                        
+                    </div>
+                }
+
+            </div>
+
+            @if (admins().length > 4) {
+                <div class="pagination-controls">
+                    <!-- Left Arrow -->
+                    <img 
+                        src="icons/arrow_left.svg" 
+                        (click)="goToPreviousPage()" 
+                        [class.disabled]="currentPage() === 0"
+                    />
+            
+                    <!-- Current Page -->
+                    <span>{{ currentPage() + 1 }} of {{ totalPages() }}</span>
+            
+                    <!-- Right Arrow -->
+                    <img 
+                        src="icons/arrow_right.svg" 
+                        (click)="goToNextPage()" 
+                        [class.disabled]="currentPage() === totalPages() - 1"
+                    />
+                </div>
+            }
+
+        }
+
+    
+        @case ('tab2') {
+            <div class="reset-password-form">
+
+                <div class="form-group">
+                    <label for="adminId">Admin ID</label>
+                    <input 
+                        id="adminId" 
+                        type="number" 
+                        [value]="adminId"
+                        (input)="validateAdminId($any($event).target.value)"
+                        (blur)="fetchAdminById($any($event).target.value)"
+                        placeholder="Enter Admin ID"
+                        min="0"
+                        onkeypress="return event.charCode >= 48"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="adminName">Admin Name</label>
+                    <input 
+                        id="adminName" 
+                        type="text" 
+                        [value]="adminName()" 
+                        disabled 
+                        placeholder=""
+                    />
+                    @if (errorMessage()) {
+                        <p class="error-message">{{ errorMessage() }}</p>
+                    }
+                </div>
+
+                <div class="form-group">
+                  <label for="newPassword">New Password</label>
+                  <input 
+                    id="newPassword" 
+                    type="password" 
+                    [value]="newPassword" 
+                    placeholder="Enter new password"
+                  />
+                </div>
+              
+                <div class="form-group">
+                  <label for="confirmPassword">Confirm Password</label>
+                  <input 
+                    id="confirmPassword" 
+                    type="password" 
+                    [value]="confirmPassword" 
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                <button 
+                    class="change-btn" 
+                    [disabled]="!adminName() || newPassword !== confirmPassword"
+                    (click)="showConfirmPopup.set(true)"
+                    >
+                    Change Password
+                </button>
+            </div>
+        }
+
+
+        @case ('tab3') {
+
+        }
+
+    }
+
+    @if (selectedMessage()) {
+        <div class="message-popup-overlay" (click)="closePopup()">
+            <div class="message-popup" (click)="$event.stopPropagation()">
+                <h3>Activities for {{ selectedMessage()?.name }}</h3>
+                
+                <!-- Activities Table -->
+                <div class="activities-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (activity of paginatedActivities(); track activity.id) {
+                                <tr>
+                                    <td>{{ activity.activity }}</td>
+                                    <td>{{ activity.date }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Activities Pagination -->
+                @if (selectedMessage()?.activities.length > 3) {
+                    <div class="activities-pagination">
+
+                        <img 
+                            src="icons/arrow_left.svg" 
+                            (click)="prevActivitiesPage()" 
+                            [class.disabled]="currentActivitiesPage() === 0"
+                            [attr.aria-disabled]="!hasPreviousPage()"
+                        />
+                        <span>Page {{ currentActivitiesPage() + 1 }} of {{ totalActivitiesPages() }}</span>
+
+                        <img 
+                            src="icons/arrow_right.svg" 
+                            (click)="nextActivitiesPage()" 
+                            [class.disabled]="currentActivitiesPage() === totalActivitiesPages() - 1"
+                            [attr.aria-disabled]="!hasPreviousPage()"
+                        />
+                        
+                    </div>
+                }
+
+                <button (click)="closePopup()">Close</button>
+            </div>
+        </div>
+    }
+
+
+    @if (showConfirmPopup()) {
+        <div class="confirm-popup-overlay" (click)="showConfirmPopup.set(false)">
+          <div class="confirm-popup" (click)="$event.stopPropagation()">
+            <p>Are you sure you want to reset the password for <strong>{{ adminName() }}</strong>?</p>
+            <div class="popup-actions">
+              <button class="yes-btn" (click)="confirmReset()">Yes</button>
+              <button class="cancel-btn" (click)="showConfirmPopup.set(false)">Cancel</button>
+            </div>
+          </div>
+        </div>
+    }
+    
+
+
+</div>

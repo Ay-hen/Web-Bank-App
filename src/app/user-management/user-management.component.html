@@ -82,8 +82,8 @@
                                 
                                 <div class="popover active">
                                 <ul>
-                                    <li (click)="viewProfile(customer)">
-                                        <img src="icons/view.svg" alt=""> <span>View Profile</span>
+                                    <li (click)="openMessagePopup(customer)">
+                                        <img src="icons/view.svg" alt=""> <span>View Activities</span>
                                     </li>
                                     <li class = "block" (click)="blockCustomer(customer)">
                                         <img src="icons/block.svg" alt=""><span>Block</span> 
@@ -99,26 +99,26 @@
 
             </div>
 
-            <div class="pagination-controls">
-                <!-- Left Arrow -->
-                <img 
-                    src="icons/arrow_left.svg" 
-                    (click)="goToPreviousPage()" 
-                    [class.disabled]="!hasPreviousPage()" 
-                    [attr.aria-disabled]="!hasPreviousPage()"
-                />
-
-                <!-- Current Page -->
-                <span>{{ currentPage() + 1 }}</span> 
-
-                <!-- Right Arrow -->
-                <img 
-                    src="icons/arrow_right.svg" 
-                    (click)="goToNextPage()" 
-                    [class.disabled]="!hasNextPage()" 
-                    [attr.aria-disabled]="!hasNextPage()"
-                />
-            </div> 
+            @if (customers().length > 4) {
+                <div class="pagination-controls">
+                    <!-- Left Arrow -->
+                    <img 
+                        src="icons/arrow_left.svg" 
+                        (click)="goToPreviousPage()" 
+                        [class.disabled]="currentPage() === 0"
+                    />
+            
+                    <!-- Current Page -->
+                    <span>{{ currentPage() + 1 }} of {{ totalPages() }}</span>
+            
+                    <!-- Right Arrow -->
+                    <img 
+                        src="icons/arrow_right.svg" 
+                        (click)="goToNextPage()" 
+                        [class.disabled]="currentPage() === totalPages() - 1"
+                    />
+                </div>
+            }
 
         }
 
@@ -358,9 +358,66 @@
 
             }
 
+        @case ('tab3') {
+            <h1>User Activities</h1>
+        }
         
         @default {
         <h2>Select a tab to view content</h2>
         }
     }
+
+
+    @if (selectedMessage()) {
+        <div class="message-popup-overlay" (click)="closePopup()">
+            <div class="message-popup" (click)="$event.stopPropagation()">
+                <h3>Activities for {{ selectedMessage()?.name }}</h3>
+                
+                <!-- Activities Table -->
+                <div class="activities-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (activity of paginatedActivities(); track activity.id) {
+                                <tr>
+                                    <td>{{ activity.activity }}</td>
+                                    <td>{{ activity.date }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Activities Pagination -->
+                @if (selectedMessage()?.activities.length > 3) {
+                    <div class="activities-pagination">
+
+                        <img 
+                            src="icons/arrow_left.svg" 
+                            (click)="prevActivitiesPage()" 
+                            [class.disabled]="currentActivitiesPage() === 0"
+                            [attr.aria-disabled]="!hasPreviousPage()"
+                        />
+                        <span>Page {{ currentActivitiesPage() + 1 }} of {{ totalActivitiesPages() }}</span>
+
+                        <img 
+                            src="icons/arrow_right.svg" 
+                            (click)="nextActivitiesPage()" 
+                            [class.disabled]="currentActivitiesPage() === totalActivitiesPages() - 1"
+                            [attr.aria-disabled]="!hasPreviousPage()"
+                        />
+                        
+                    </div>
+                }
+
+                <button (click)="closePopup()">Close</button>
+            </div>
+        </div>
+    }
+
 </div>

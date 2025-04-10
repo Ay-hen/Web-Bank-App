@@ -31,18 +31,18 @@ app-dashboard-navbar {
 
 /* Dashboard Container */
 .container {
-    margin-left: 280px; /* Adjusted to center content with extra 1rem */
-    padding: 24px;
-    min-height: 30rem;
-    background-color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    margin-top: 0.57rem; /* Add top margin to push content below the navbar */
-    margin-right:30px; /* Keeps space on the right */
+  margin-left: 280px; 
+  padding: 24px;
+  min-height: 37rem;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin-top: 0.57rem; 
+  margin-right:30px;
 }
 
 
@@ -327,15 +327,6 @@ p {
 .amount{
     padding-left: 2.4rem;
 }
-.number{
-    //padding-left: 1rem;
-}
-.email{
-    padding-left: 1rem;
-}
-.status{
-    //padding-left: 0.2rem;
-}
 
 /* Customer Row Styles */
 .customers-list {
@@ -344,7 +335,7 @@ p {
     flex-direction: column;
     gap: 0.5rem;
     position: relative; /* Needed for absolute positioning of pagination */
-    min-height: 200px;
+    height: 230px;
 }
 
 .customer-row {
@@ -812,6 +803,12 @@ p {
     height: 30px;
     cursor: pointer;
     transition: transform 0.3s ease;
+
+    &.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
 }
 
 .pagination-controls img:hover {
@@ -824,12 +821,168 @@ p {
     color: #5932ea;
 }
 
-.pagination-controls img[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
+
+
+.message-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.message-popup {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  height: 420px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.message-popup h3 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+.activities-table {
+  overflow-y: auto;
+  max-height: 190px;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  height: 190px;
+
+  table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 400px;
+
+      thead {
+          position: sticky;
+          top: 0;
+          background-color: #f8fafc;
+          z-index: 10;
+          
+          tr {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              border-bottom: 1px solid #e2e8f0;
+          }
+
+          th {
+              padding: 0.75rem 1rem;
+              font-weight: 600;
+              color: #4b5563;
+              font-size: 0.85rem;
+              text-align: center;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+          }
+      }
+
+      tbody {
+          tr {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              border-bottom: 1px solid #e2e8f0;
+              transition: background-color 0.5s ease-in-out;
+
+              &:last-child {
+                  border-bottom: none;
+              }
+
+              &:hover {
+                  background-color: #f9f5ff;
+              }
+
+              td {
+                  padding: 0.75rem 1rem;
+                  font-size: 0.9rem;
+                  color: #4b5563;
+                  text-align: center;
+                  word-break: break-word;
+              }
+          }
+      }
+  }
 }
 
 
+.activities-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+
+      span {
+      font-size: 0.9rem;
+      color: #333;
+      }
+  
+      img {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      transition: 0.2s ease;
+  
+      &.disabled {
+          opacity: 0.4;
+      }
+  }
+}
+
+.message-popup button {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1.25rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+      background-color: #0056b3;
+  }
+}
+
+.message-popup-overlay.closing {
+  opacity: 0;
+}
+
+
+.message-popup-overlay.closing .message-popup {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: scale(0.98);
+  }
+  to {
+      opacity: 1;
+      transform: scale(1);
+  }
+}
 
 /* ************************************************* Tab 2 ************************************************* */
 

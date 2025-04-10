@@ -1,0 +1,50 @@
+<app-dashboard-navbar> </app-dashboard-navbar>
+<div class="container">
+    <div class="notification-container">
+        <h2>Send Notification</h2>
+    
+        <div class="input-group">
+            <!-- Send To -->
+            <div class="custom-select-wrapper">
+            <label class="select-label">Send To</label>
+            <select [value]="selectedType()" (change)="onTypeChange($any($event).target.value)">
+
+                <option value="all">Send to All</option>
+                <option value="group">Send to Group</option>
+            </select>
+            </div>
+    
+            <!-- Group ID (Only if 'group') -->
+            @if (selectedType() === 'group') {
+            <input class="username-input" type="text" placeholder="Enter Group ID" [value]="groupId" />
+            }
+    
+            <!-- Notification Type -->
+            <input class="username-input" type="text" placeholder="Notification Type" [value]="notificationType" />
+    
+            <!-- Message -->
+            <textarea class="username-input" placeholder="Enter your message" rows="4" ></textarea>
+    
+            <!-- Send Time -->
+            <div class="custom-select-wrapper">
+            <label class="select-label">Set Time</label>
+            <select [value]="schedule()" (change)="onScheduleChange($any($event).target.value)">
+                
+                <option value="now">Now</option>
+                <option value="custom">Custom Date</option>
+            </select>
+            </div>
+    
+            @if (schedule() === 'custom') {
+            <input class="username-input" type="datetime-local" [value]="customDate" />
+            }
+    
+            <!-- Send Button -->
+            <div class="download-buttons">
+            <button class="download-btn" (click)="sendNotification()">
+                Send Notification
+            </button>
+            </div>
+        </div>
+    </div>
+</div>

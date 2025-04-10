@@ -247,7 +247,7 @@ h2 {
     flex-direction: column;
     gap: 0.5rem;
     position: relative; /* Needed for absolute positioning of pagination */
-    height: 220px;
+    height: 230px;
 }
 
 .feedback-row {
@@ -393,6 +393,11 @@ h2 {
     height: 30px;
     cursor: pointer;
     transition: transform 0.3s ease;
+
+    &.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+    }
 }
 
 .pagination-controls img:hover {
@@ -405,10 +410,6 @@ h2 {
     color: #5932ea;
 }
 
-.pagination-controls img[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 
 
 

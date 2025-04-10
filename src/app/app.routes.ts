@@ -5,6 +5,8 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { UserManagementComponent } from './user-management/user-management.component';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { TransactionComponent } from './transaction/transaction.component';
+import { NotificationComponent } from './notification/notification.component';
+import { AdminManagementComponent } from './admin-management/admin-management.component';
 
 export const routes: Routes = [
 
@@ -42,6 +44,16 @@ export const routes: Routes = [
     {
         path: 'transaction',
         component: TransactionComponent
+    },
+
+    {
+        path : 'notification',
+        component : NotificationComponent
+    },
+
+    {
+        path : 'admin-management',
+        component : AdminManagementComponent
     }
 
 ];

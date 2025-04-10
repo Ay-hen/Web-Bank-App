@@ -226,7 +226,7 @@ throw new Error('Method not implemented.');
     }
 
     totalPages(): number {
-      return Math.ceil(this.feedbacks.length / this.itemsPerPage);
+      return Math.ceil(this.feedbacks().length / this.itemsPerPage);
     }
     
     
