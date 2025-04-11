@@ -37,7 +37,7 @@ public class User  implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long userId; 
+    private Long id; 
 
     @Column(name = "user_name", nullable = false, length = 100)
     private String name;
@@ -47,10 +47,10 @@ public class User  implements UserDetails {
 
 
     @Column(name = "user_email", nullable = false, unique = true, length = 255)
-    private String userEmail; 
+    private String email; 
 
     @Column(name = "user_password", nullable = false, columnDefinition = "TEXT")
-    private String userPassword;
+    private String password;
     
     @Column(name = "role_name", nullable = false, columnDefinition = "TEXT")
     private String role;
@@ -62,22 +62,13 @@ public class User  implements UserDetails {
     @Column(name = "login_date")
     private LocalDateTime loginDate; 
 
-    @Column(name = "is_online", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "is_online", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isOnline; 
     @Column(name = "user_creation_date", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime userCreationDate; 
+    private LocalDateTime creationDate; 
 
-    @Column(name = "is_blocked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "is_blocked", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isBlocked; 
-
-    @Column(name = "login_first_time", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean loginFirstTime; 
-
-    @Column(name = "max_password_attempts", nullable = false, columnDefinition = "INT DEFAULT 3")
-    private int maxPasswordAttempts; 
-
-    @Column(name = "failed_login_attempts", nullable = false, columnDefinition = "INT DEFAULT 0")
-    private int failedLoginAttempts; 
 
     @Column(name = "last_failed_Login")
     private LocalDateTime lastFailedLogin;
@@ -85,38 +76,35 @@ public class User  implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Token> token;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Permission> permissions;
+
     @PrePersist
     protected void onCreate() {
         this.isOnline = false;     
         this.isBlocked = false;   
-        this.loginFirstTime = true; 
-        this.maxPasswordAttempts = 3; 
-        this.failedLoginAttempts = 0;
-        this.userCreationDate = LocalDateTime.now();
+        this.creationDate = LocalDateTime.now();
     }
 
     protected User(UserBuilder<?, ?> b) {
-        this.userId = b.userId;
+        this.id = b.id;
         this.name = b.name;
-        this.userEmail = b.userEmail;
-        this.userPassword = b.userPassword;
+        this.email = b.email;
+        this.password = b.password;
         this.role = b.role;
         this.lastActive = b.lastActive;
         this.loginDate = b.loginDate;
         this.isOnline = b.isOnline;
-        this.userCreationDate = b.userCreationDate;
+        this.creationDate = b.creationDate;
         this.isBlocked = b.isBlocked;
-        this.loginFirstTime = b.loginFirstTime;
-        this.maxPasswordAttempts = b.maxPasswordAttempts;
-        this.failedLoginAttempts = b.failedLoginAttempts;
         this.username = b.username;
     }
 
-    
+
 
     @Override
     public String getPassword() {
-        return this.userPassword;
+        return this.password;
     }
 
     

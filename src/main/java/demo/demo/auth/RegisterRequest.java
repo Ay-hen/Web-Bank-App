@@ -1,5 +1,6 @@
 package demo.demo.auth;
 
+import demo.demo.model.Permission;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,5 +21,5 @@ public class RegisterRequest {
     private String password;
     private String role;
     private LocalDateTime creationDate;
-    private List<String> permissions;
+    private List<Permission> permissions;
 }
