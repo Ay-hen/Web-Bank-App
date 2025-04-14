@@ -1,6 +1,5 @@
 package demo.demo.auth;
 
-import demo.demo.model.Permission;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,10 +15,11 @@ import lombok.NoArgsConstructor;
 
 
 public class RegisterRequest {
-    private String userName;
+    private String name;
+    private String username;
     private String email;
     private String password;
     private String role;
     private LocalDateTime creationDate;
-    private List<Permission> permissions;
+    private List<String> permissions;
 }

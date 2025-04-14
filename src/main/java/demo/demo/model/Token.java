@@ -48,6 +48,7 @@ public class Token {
     @Column(name = "revoked", nullable = false)
     private boolean revoked; 
 
+    
     @PrePersist
     protected void onCreate() {
         this.creationDate = LocalDateTime.now();
