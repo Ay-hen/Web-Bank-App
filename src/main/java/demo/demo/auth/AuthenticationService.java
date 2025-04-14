@@ -131,7 +131,8 @@ public class AuthenticationService {
             return ResponseEntity.ok(
                 Map.of(
                     "token", jwtToken,
-                    "permission", resp
+                    "permission", resp,
+                    "role", user.getRole()
                 )
             );
         }catch(Exception e){
