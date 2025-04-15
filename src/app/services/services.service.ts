@@ -49,25 +49,27 @@ export class ServicesService {
   
     return this.http.post(url, user, httpOptions).pipe(
       map((response: any) => {
-        if (response && response.token && response.role && response.permission) {
-          const token = response.token;
-          const role = response.role;
-          const permissions = response.permission;
-  
+        const body = response.body || response; 
+      
+        if (body && body.token && body.role && body.permission) {
+          const token = body.token;
+          const role = body.role;
+          const permissions = body.permission;
+      
           localStorage.setItem('token', token);
           localStorage.setItem('role', role);
-          localStorage.setItem('permissions', JSON.stringify(permissions)); // Save permissions
-  
+          localStorage.setItem('permissions', JSON.stringify(permissions));
+      
           this.isAuthenticatedSubject.next(true);
           this.userRoleSubject.next(role);
-  
-          if (role === "admin") {
+      
+          if (role === "ADMIN") {
             this.router.navigate(['dashboard']);
           } else {
             this.router.navigate(['/user-dashboard']);
           }
-  
-          return response;
+      
+          return body;
         } else {
           console.error('Invalid login response:', response);
           throw new Error('Invalid login credentials');

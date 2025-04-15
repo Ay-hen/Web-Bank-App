@@ -5,26 +5,27 @@
     </div>
     
     <ul class="nav-menu">
-        @for (item of navItems; track item.path) {
-            @if(item.label != "Logout"){
-                <li class="nav-item">
-                    <a 
-                        [routerLink]="item.path" 
-                        routerLinkActive="active"
-                        [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
-                        class="nav-link">
-                        <img [src]="item.icon" [alt]="item.label + ' icon'" class="nav-icon">
-                        <span class="nav-label">{{ item.label }}</span>
-                    </a>
-                </li>
-            }@else{
-                <li class="nav-item" (click)="logout()">
-                    <a class="nav-link">
-                        <img [src]="item.icon" [alt]="item.label + ' icon'" class="nav-icon logout-icon">
-                        <span class="nav-label">{{ item.label }}</span>
-                    </a>
-                </li>
-            }
+        @for (item of visibleItems(); track item.path) {
+          @if(item.label !== "Logout") {
+            <li class="nav-item">
+              <a 
+                [routerLink]="item.path" 
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+                class="nav-link">
+                <img [src]="item.icon" [alt]="item.label + ' icon'" class="nav-icon">
+                <span class="nav-label">{{ item.label }}</span>
+              </a>
+            </li>
+          } @else {
+            <li class="nav-item" (click)="logout()">
+              <a class="nav-link">
+                <img [src]="item.icon" [alt]="item.label + ' icon'" class="nav-icon logout-icon">
+                <span class="nav-label">{{ item.label }}</span>
+              </a>
+            </li>
+          }
         }
-    </ul>
+      </ul>
+      
 </nav>

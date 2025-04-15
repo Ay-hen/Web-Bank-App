@@ -7,53 +7,60 @@ import { FeedbackComponent } from './feedback/feedback.component';
 import { TransactionComponent } from './transaction/transaction.component';
 import { NotificationComponent } from './notification/notification.component';
 import { AdminManagementComponent } from './admin-management/admin-management.component';
+import { authGuard } from './guard/auth.guard';
 
 export const routes: Routes = [
-
     {
         path: '',
         redirectTo: '/home',
         pathMatch: 'full'
     },
-
     {
         path: 'home',
-        component : HomeComponent
+        component: HomeComponent
     },
-
     {
-        path : 'login',
-        component : LoginComponent
+        path: 'login',
+        component: LoginComponent
     },
-
     {
-        path : 'dashboard',
-        component : DashboardComponent
+        path: 'dashboard',
+        component: DashboardComponent,
+        canActivate: [authGuard],
+        data: { role: 'ADMIN', permission: 'VIEW_DASHBOARD' }
     },
-
     {
-        path : 'users',
-        component : UserManagementComponent
+        path: 'users',
+        component: UserManagementComponent,
+        canActivate: [authGuard],
+        data: { role: 'ADMIN', permission: 'MANAGE_USERS' }
     },
-
     {
-        path : 'feedback',
-        component : FeedbackComponent
+        path: 'feedback',
+        component: FeedbackComponent,
+        canActivate: [authGuard],
+        data: { role: 'ADMIN', permission: 'MANAGE_FEEDBACK' }
     },
-
     {
         path: 'transaction',
-        component: TransactionComponent
+        component: TransactionComponent,
+        canActivate: [authGuard],
+        data: { role: 'ADMIN', permission: 'MANAGE_TRANSACTION' }
     },
-
     {
-        path : 'notification',
-        component : NotificationComponent
+        path: 'notification',
+        component: NotificationComponent,
+        canActivate: [authGuard],
+        data: { role: 'ADMIN', permission: 'MANAGE_NOTIFICATION' }
     },
-
     {
-        path : 'admin-management',
-        component : AdminManagementComponent
+        path: 'admin-management',
+        component: AdminManagementComponent,
+        canActivate: [authGuard],
+        data: { role: 'ADMIN', permission: 'MANAGE_ADMIN' }
+    },
+    {
+        path: '**',
+        redirectTo: '/home' // fallback for unknown routes
     }
-
 ];

@@ -21,12 +21,20 @@ export class LoginComponent {
   login() {
     const usernameValue = this.username();
     const passwordValue = this.password();
-
+  
     if (!usernameValue || !passwordValue) {
       alert('Please enter both username and password.');
       return;
     }
-
-    
+  
+    this.auth.login(usernameValue, passwordValue).subscribe({
+      next: (res) => {
+        console.log('Login successful!', res);
+      },
+      error: (err) => {
+        alert('Login failed: ' + err);
+      }
+    });
   }
+  
 }
