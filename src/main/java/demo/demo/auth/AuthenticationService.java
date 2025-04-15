@@ -70,14 +70,13 @@ public class AuthenticationService {
                     .toList();
     
                 permissionRepo.saveAll(permissionEntities);
-                user.setPermissions(permissionEntities); // set saved list
+                user.setPermissions(permissionEntities); 
             }
-    
-            userRepo.save(user);
+
             return ResponseEntity.ok("User created successfully");
     
         } catch(Exception e){
-            e.printStackTrace(); // log it
+            e.printStackTrace(); 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error creating user: " + e.getMessage());
         }
