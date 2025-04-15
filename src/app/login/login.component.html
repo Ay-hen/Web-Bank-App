@@ -6,11 +6,11 @@
             <h1>Login</h1>
             <div class="input-container">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" (input)="username.set($any($event.target).value)" required>
             </div>
             <div class="input-container">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" (input)="password.set($any($event.target).value)" required>
             </div>
             <div class="forget-password">
                 <a href="#">Forget Password ?</a>

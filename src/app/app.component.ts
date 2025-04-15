@@ -1,5 +1,5 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { NavbarComponent } from './navbar/navbar.component';
@@ -12,7 +12,9 @@ import { NavbarComponent } from './navbar/navbar.component';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  constructor(private scroller: ViewportScroller, private router: Router) {}
+
+  router = inject(Router);
+  constructor(private scroller: ViewportScroller) {}
 
   ngOnInit() {
     // Scroll to the top on route change

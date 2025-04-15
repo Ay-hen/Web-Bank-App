@@ -1,21 +1,25 @@
 import { CommonModule, ViewportScroller } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
 
+
 export class NavbarComponent implements OnInit {
   activeSection = '';
 
+  private viewportScroller = inject(ViewportScroller);
+  private router = inject(Router);
+
   constructor(
-    private router: Router,
-    private viewportScroller: ViewportScroller
+    //private viewportScroller: ViewportScroller,
+    //private router: Router
   ) {}
 
 
