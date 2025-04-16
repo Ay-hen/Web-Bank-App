@@ -1,0 +1,43 @@
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-30px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    overflow: hidden;
+}
+
+.img {
+    text-align: center;
+    animation: fadeInScale 0.8s ease-out;
+}
+
+.unauthorized-image {
+    width: 400px;
+    height: 400px;
+    object-fit: contain;
+    animation: float 3s ease-in-out infinite;
+}

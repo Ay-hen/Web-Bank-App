@@ -32,6 +32,7 @@ export class ServicesService {
       this.previousUrl = this.currentUrl;
       this.currentUrl = event.urlAfterRedirects;
     });
+    
   }
 
   notifyUpdate() {
@@ -131,5 +132,9 @@ export class ServicesService {
   
     const decodedToken = jwtDecode(token);
     return decodedToken.sub;
+  }
+
+  getCurrentUrl(): string {
+    return this.currentUrl;
   }
 }

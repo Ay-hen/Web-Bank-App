@@ -9,6 +9,8 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(ServicesService);
   const routerService = inject(Router);
 
+  const currentUrl = authService.getCurrentUrl();
+
   const userRole = authService.getRole();
   const userPermissions = authService.getPermissionNames();
 
@@ -35,9 +37,10 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   // Permission check (only if required)
   if (requiredPermission && !userPermissions.includes(requiredPermission)) {
-    routerService.navigate(['/unauthorized']);
+    routerService.navigate([currentUrl]);
     return false;
   }
 
   return true;
+
 };

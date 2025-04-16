@@ -8,6 +8,7 @@ import { TransactionComponent } from './transaction/transaction.component';
 import { NotificationComponent } from './notification/notification.component';
 import { AdminManagementComponent } from './admin-management/admin-management.component';
 import { authGuard } from './guard/auth.guard';
+import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 
 export const routes: Routes = [
     {
@@ -59,8 +60,9 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { role: 'ADMIN', permission: 'MANAGE_ADMIN' }
     },
+
     {
-        path: '**',
-        redirectTo: '/home' // fallback for unknown routes
+        path: 'unauthorized',
+        component: UnauthorizedComponent
     }
 ];
