@@ -26,13 +26,18 @@ export class ServicesService {
 
   constructor(private http: HttpClient) {
     this.currentUrl = this.router.url;
+  
+    // Check for token expiration and logout if necessary
+    if (this.isTokenExpired()) {
+      this.logout();
+    }
+  
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       this.previousUrl = this.currentUrl;
       this.currentUrl = event.urlAfterRedirects;
     });
-    
   }
 
   notifyUpdate() {
@@ -142,4 +147,33 @@ export class ServicesService {
     return this.http.get<any[]>('http://localhost:8181/api/v1/customers')
       .pipe(catchError(this.handleError));
   }
+
+  isTokenExpired(): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return true;
+  
+    try {
+      const decodedToken: any = jwtDecode(token);
+      const expiry = decodedToken.exp;
+  
+      if (!expiry) return true;
+  
+      const now = Math.floor(Date.now() / 1000);
+      return expiry < now;
+    } catch (e) {
+      return true; // Treat invalid token as expired
+    }
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('permissions');
+  
+    this.isAuthenticatedSubject.next(false);
+    this.userRoleSubject.next(null);
+  
+    this.router.navigate(['/login']);
+  }
+  
 }
