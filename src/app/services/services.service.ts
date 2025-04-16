@@ -137,4 +137,9 @@ export class ServicesService {
   getCurrentUrl(): string {
     return this.currentUrl;
   }
+
+  getCustomers(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:8181/api/v1/customers')
+      .pipe(catchError(this.handleError));
+  }
 }

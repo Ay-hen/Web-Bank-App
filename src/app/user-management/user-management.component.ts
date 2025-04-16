@@ -1,5 +1,6 @@
-import { Component, computed, HostListener, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
+import { ServicesService } from '../services/services.service';
 
 
 type Customer = {
@@ -21,7 +22,7 @@ type Customer = {
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss'
 })
-export class UserManagementComponent  {
+export class UserManagementComponent implements OnInit {
   
 
   maxPage() {
@@ -39,63 +40,19 @@ export class UserManagementComponent  {
   currantPageIndex = signal(0); 
   itemsPerPage = 4;  
 
-  // Dummy customer data
-  customers = signal([
-    { id: 1, name: 'John Doe', amount: '$1000', phone: '123-456-7890', email: 'john@example.com', status: 'Active', creationDate: '2024-01-15',
-      activities:[
-        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
-        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
-        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
-        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
-        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
-      ]
-    },
-    { id: 2, name: 'Conan Kun', amount: '$1000', phone: '0632887456', email: 'conan@example.com', status: 'Active', creationDate: '2024-01-15',
-      activities:[
-        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
-        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
-        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
-        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
-        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
-      ]
-     },
-    { id: 3, name: 'Ayoub Hen', amount: '$1500', phone: '0636859674', email: 'ayoub@example.com', status: 'Active', creationDate: '2024-01-15',
-      activities:[
-        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
-        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
-        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
-        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
-        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
-      ]
-     },
-    { id: 4, name: 'Zara Lune', amount: '$1200', phone: '0637774444', email: 'zara@example.com', status: 'Inactive', creationDate: '2024-02-18',
-      activities:[
-        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
-        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
-        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
-        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
-        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
-      ]
-     },
-    { id: 5, name: 'Lucas M', amount: '$800', phone: '0633339876', email: 'lucas@example.com', status: 'Active', creationDate: '2024-03-10',
-      activities:[
-        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
-        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
-        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
-        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
-        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
-      ]
-     },
-    { id: 6, name: 'Clara B', amount: '$2000', phone: '0634223456', email: 'clara@example.com', status: 'Active', creationDate: '2024-04-01' ,
-      activities:[
-        {id: 1, activity: "Login", date: "2024-01-16 09:15", description: "User logged in successfully."},
-        {id: 2, activity: "Change Password", date: "2024-01-17 14:30", description: "User changed their password."},
-        {id: 3, activity: "Updated Profile", date: "2024-01-18 11:20", description: "User updated their profile information."},
-        {id: 4, activity: "Deleted User", date: "2024-01-19 16:45", description: "User deleted their account."},
-        {id: 5, activity: "Added Payment Method", date: "2024-01-20 10:00", description: "User added a new payment method."},
-      ]
-    },
-  ]);
+  private service = inject(ServicesService);
+
+  ngOnInit(): void {
+    this.service.getCustomers().subscribe(data => {
+      this.customers.set(data);
+      this.loading.set(false);
+    });
+
+    console.log('Customers:', this.customers());
+  }
+
+  customers = signal<any[]>([]);
+  loading = signal(true);
 
   filteredCustomers = computed(() => {
     const query = this.searchQuery().toLowerCase();

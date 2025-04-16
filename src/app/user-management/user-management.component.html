@@ -54,10 +54,10 @@
                     <div class="customer-row">
                         <div>{{ customer.name }}</div>
                         <div>{{ customer.amount }}</div>
-                        <div>{{ customer.phone }}</div>
+                        <div>{{ customer.phoneNumber }}</div>
                         <div>{{ customer.email }}</div>
                         <div>{{ customer.status }}</div>
-                        <div>{{ customer.creationDate }}</div>
+                        <div>{{ customer.createdDate.split('T')[0] }}</div>
 
                         <div class="download" 
                             (click)="toggleDownloadOptions(customer)"
