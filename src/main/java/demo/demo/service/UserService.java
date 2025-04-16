@@ -1,16 +1,25 @@
 package demo.demo.service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.EntityNotFoundException;
+
 import demo.demo.auth.PermissionResponse;
+import demo.demo.dto.CustomerResponse;
+import demo.demo.model.Account;
+import demo.demo.model.Customer;
 import demo.demo.model.Permission;
 import demo.demo.model.User;
+
 import demo.demo.repository.PermissionRepo;
 import demo.demo.repository.UserRepo;
-import jakarta.persistence.EntityNotFoundException;
+import demo.demo.repository.AccountRepo;
+import demo.demo.repository.CustomerRepo;
 
 @Service
 public class UserService {
@@ -19,6 +28,12 @@ public class UserService {
 
     @Autowired
     private PermissionRepo permissionRepo;
+
+    @Autowired
+    private AccountRepo accountRepo;
+
+    @Autowired
+    private CustomerRepo customerRepo;
     
     public void assignPermissionsToUser(Long userId, List<Long> permissionIds) {
 
@@ -75,4 +90,23 @@ public class UserService {
             userRepo.save(user);
         }
     }
+
+    public List<CustomerResponse> getAllCustomerResponses() {
+        List<Customer> customers = customerRepo.findAll();
+
+        return customers.stream().map(customer -> {
+            Account account = customer.getAccount();
+
+            return CustomerResponse.builder()
+                    .id(customer.getId())
+                    .name(customer.getName())
+                    .email(customer.getEmail())
+                    .phoneNumber(customer.getPhoneNumber())
+                    .amount(account != null ? account.getAmount() : BigDecimal.ZERO)
+                    .createdDate(customer.getCreationDate())
+                    .status(account != null ? account.getAccountStatus() : "N/A")
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
 }
