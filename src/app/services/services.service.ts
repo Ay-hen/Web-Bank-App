@@ -155,13 +155,14 @@ export class ServicesService {
     try {
       const decodedToken: any = jwtDecode(token);
       const expiry = decodedToken.exp;
-  
+
       if (!expiry) return true;
   
       const now = Math.floor(Date.now() / 1000);
+
       return expiry < now;
     } catch (e) {
-      return true; // Treat invalid token as expired
+      return true; 
     }
   }
 

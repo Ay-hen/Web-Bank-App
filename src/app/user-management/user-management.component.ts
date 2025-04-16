@@ -47,8 +47,6 @@ export class UserManagementComponent implements OnInit {
       this.customers.set(data);
       this.loading.set(false);
     });
-
-    console.log('Customers:', this.customers());
   }
 
   customers = signal<any[]>([]);

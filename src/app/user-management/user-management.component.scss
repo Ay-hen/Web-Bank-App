@@ -304,7 +304,7 @@ p {
 /* Table Head Styles */
 .customers-table-head {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr 2fr 1fr 1.75fr 0.1fr 0.1fr;
+    grid-template-columns: 1.30fr 1fr 2fr 2fr 1fr 1.75fr 0.1fr 0.1fr;
     gap: 2rem;
     padding: 1rem 1.5rem;
     font-weight: 600;
@@ -317,6 +317,7 @@ p {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-size: 0.75rem;
+    font-weight: 800;
 
     text-align: center;
     justify-items: center;
@@ -340,7 +341,7 @@ p {
 
 .customer-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1.25fr 2fr 1fr 1fr 0.1fr 0.1fr;
+    grid-template-columns: 1.25fr 1fr 1.25fr 2fr 1fr 1fr 0.1fr 0.1fr;
     gap: 1rem;
     padding: 0.1rem 1.5rem;
     background-color: white;
@@ -363,7 +364,8 @@ p {
 }
 
 .customer-row div {
-    font-size: 13px;
+    font-size: 11px;
+    font-weight: 600;
     color: #4b5563;
     overflow-wrap: anywhere;
     padding: 4px 0;
