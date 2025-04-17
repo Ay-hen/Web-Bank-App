@@ -38,7 +38,7 @@ public class Customer extends User {
     @Column(name = "biometric_enabled", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean biometricEnabled;
 
-    @Column(name = "security_question", length = 5)
+    @Column(name = "security_question")
     private String securityQuestion;
 
     @Column(name = "answer", length = 50)
