@@ -29,6 +29,7 @@
                         <select (change)="sortBy.set($any($event).target.value)">
                             <option value="newest">Newest</option>
                             <option value="oldest">Oldest</option>
+                            <option value="amount">Amount</option>
                         </select>
                         <img src="icons/arrow.svg" alt="Arrow" class="custom-arrow" />
                     </div>
@@ -66,11 +67,30 @@
                         
                         @if (activeDownloadCustomer() === customer) {
                             <div class="report-options">
-                            <div class="icon-button" (click)="downloadReport(customer, 'csv'); $event.stopPropagation()">
+                            <div class="icon-button" 
+                                (click)="downloadReport(customer, 'csv'); $event.stopPropagation()"
+                                [class.loading]="isDownloading().csv">
+                                @if (!isDownloading().csv) {
                                 <img src="icons/csv.svg" alt="CSV Export">
+                                } @else {
+                                <div class="download-progress">
+                                    <div class="progress-bar" [style.width.%]="downloadProgress().csv"></div>
+                                    <div class="progress-text">{{downloadProgress().csv}}%</div>
+                                </div>
+                                }
                             </div>
-                            <div class="icon-button" (click)="downloadReport(customer, 'pdf'); $event.stopPropagation()">
+                            
+                            <div class="icon-button" 
+                                (click)="downloadReport(customer, 'pdf'); $event.stopPropagation()"
+                                [class.loading]="isDownloading().pdf">
+                                @if (!isDownloading().pdf) {
                                 <img src="icons/pdf.svg" alt="PDF Export">
+                                } @else {
+                                <div class="download-progress">
+                                    <div class="progress-bar" [style.width.%]="downloadProgress().pdf"></div>
+                                    <div class="progress-text">{{downloadProgress().pdf}}%</div>
+                                </div>
+                                }
                             </div>
                             </div>
                         }

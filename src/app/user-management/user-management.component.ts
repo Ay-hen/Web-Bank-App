@@ -1,6 +1,7 @@
 import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import { ServicesService } from '../services/services.service';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 
 
 type Customer = {
@@ -45,36 +46,51 @@ export class UserManagementComponent implements OnInit {
   ngOnInit(): void {
     this.service.getCustomers().subscribe(data => {
       this.customers.set(data);
+      console.log('Customers:', this.customers());
       this.loading.set(false);
     });
+
   }
 
   customers = signal<any[]>([]);
   loading = signal(true);
+  
 
   filteredCustomers = computed(() => {
-    const query = this.searchQuery().toLowerCase();
+    const query = this.searchQuery().trim().toLowerCase();
     const sort = this.sortBy();
     const page = this.currentPage();
     const perPage = this.itemsPerPage;
   
     // Start with full list
-    let list = this.customers();
+    let list = [...this.customers()];
   
-    // Filter
+    // Filter if query exists
     if (query) {
-      list = list.filter(customer =>
-        customer.name.toLowerCase().includes(query) ||
-        customer.email.toLowerCase().includes(query) ||
-        customer.phone.includes(query)
-      );
+      list = list.filter(customer => {
+        const nameMatch = customer.name?.toLowerCase().includes(query) ?? false;
+        const emailMatch = customer.email?.toLowerCase().includes(query) ?? false;
+        const phoneMatch = customer.phoneNumber?.toString().toLowerCase().includes(query) ?? false;
+        
+        return nameMatch || emailMatch || phoneMatch;
+      });
     }
   
     // Sort
     if (sort === 'newest') {
-      list = [...list].sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+      list.sort((a, b) => {
+        const dateA = new Date(a.creationDate || a.createdDate || 0);
+        const dateB = new Date(b.creationDate || b.createdDate || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
     } else if (sort === 'oldest') {
-      list = [...list].sort((a, b) => new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime());
+      list.sort((a, b) => {
+        const dateA = new Date(a.creationDate || a.createdDate || 0);
+        const dateB = new Date(b.creationDate || b.createdDate || 0);
+        return dateA.getTime() - dateB.getTime();
+      });
+    } else if (sort === 'amount') {
+      list.sort((a, b) => (a.amount || 0) - (b.amount || 0));
     }
   
     // Paginate
@@ -88,6 +104,7 @@ export class UserManagementComponent implements OnInit {
     if (this.currentPage() < maxPage) {
       this.currentPage.set(this.currentPage() + 1);
     }
+    console.log('Current Page:', this.customers());
   }
 
   goToPreviousPage() {
@@ -123,11 +140,51 @@ export class UserManagementComponent implements OnInit {
     console.log('Blocked:', customer);
   }
 
-  // Download report in CSV or PDF format
-  downloadReport(customer: any, format: 'csv' | 'pdf') {
-    console.log(`Downloading ${format.toUpperCase()} report for:`, customer);
-    this.showReportPopover.set(false);
-  }
+  // Add these properties
+isDownloading = signal<{csv: boolean, pdf: boolean}>({csv: false, pdf: false});
+downloadProgress = signal<{csv: number, pdf: number}>({csv: 0, pdf: 0});
+
+// Enhanced download method
+downloadReport(customer: Customer, format: 'csv' | 'pdf') {
+  // Set loading state
+  this.isDownloading.update(state => ({...state, [format]: true}));
+  this.downloadProgress.update(state => ({...state, [format]: 0}));
+
+  const customerId = customer.id;
+  const url = `http://localhost:8181/api/v1/report/${format}?id=${customerId}`;
+
+  this.service.downloadFileWithProgress(url).subscribe({
+    next: (event: any) => {
+      if (event.type === HttpEventType.DownloadProgress) {
+        // Update progress
+        const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+        this.downloadProgress.update(state => ({...state, [format]: progress}));
+      } else if (event instanceof HttpResponse) {
+        // Download complete
+        const blob = event.body;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${customer.name.replace(/\s+/g, '_')}_report.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        // Reset states
+        this.isDownloading.update(state => ({...state, [format]: false}));
+        this.downloadProgress.update(state => ({...state, [format]: 0}));
+      }
+    },
+    error: (error:any) => {
+      console.error(`Error downloading ${format} report:`, error);
+      this.isDownloading.update(state => ({...state, [format]: false}));
+      this.downloadProgress.update(state => ({...state, [format]: 0}));
+    }
+  });
+}
 
 
   paginatedCustomers() {

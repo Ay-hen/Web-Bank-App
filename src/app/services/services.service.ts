@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError,filter,map,tap, throwError } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHeaders } from '@angular/common/http';
 import { NavigationEnd, Router } from '@angular/router';
 import  {jwtDecode} from 'jwt-decode';
 import { Subject } from 'rxjs';
@@ -177,4 +177,34 @@ export class ServicesService {
     this.router.navigate(['/login']);
   }
   
+
+  //Download file
+  // In services.service.ts
+downloadFile(url: string): Observable<Blob> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/pdf, text/csv' // Specify accepted response types
+  });
+
+  return this.http.get(url, {
+    responseType: 'blob',
+    headers: headers,
+    reportProgress: true // Enable progress tracking if needed
+  });
+}
+  downloadFileWithProgress(url: string): Observable<HttpEvent<Blob>> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/pdf, text/csv'
+    });
+
+    return this.http.get(url, {
+      responseType: 'blob',
+      headers: headers,
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
 }
