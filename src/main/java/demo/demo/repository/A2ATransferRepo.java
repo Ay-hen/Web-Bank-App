@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import demo.demo.model.A2ATransfer;
+import demo.demo.model.Account;
 
 @Repository
 public interface A2ATransferRepo extends JpaRepository<A2ATransfer, Long>{
@@ -17,4 +18,5 @@ public interface A2ATransferRepo extends JpaRepository<A2ATransfer, Long>{
     List<A2ATransfer> findByAccountDebitRibOrAccountCreditRibAndDateTransactionAfter(
         String accountRib, String accountRib2, LocalDateTime dateTransaction, Sort sort
     );
+    List<A2ATransfer> findByAccountDebitOrAccountCredit(Account account, Account account2);
 }

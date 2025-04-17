@@ -1,6 +1,7 @@
 package demo.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.ContentDisposition;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,5 +62,15 @@ public class MainController {
         headers.setContentDisposition(ContentDisposition.attachment().filename("report.csv").build());
 
         return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<Map<String, Object>>> getAllTransactions() {
+        return ResponseEntity.ok(userService.getAllTransactions());
+    }
+
+    @GetMapping("/user/{id}/transactions")
+    public ResponseEntity<List<Map<String, Object>>> getUserTransactions(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserTransactions(id));
     }
 }
