@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import com.lowagie.text.pdf.PdfWriter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import demo.demo.auth.PermissionResponse;
+import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
 import demo.demo.enums.TransactionStatus;
 import demo.demo.enums.TransactionType;
@@ -462,4 +464,36 @@ public class UserService {
             throw new RuntimeException("Transfer failed: " + e.getMessage(), e);
         }
     }
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mma");
+
+    public List<CustomerDTO> getCustomersThisMonth() {
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        return customerRepo.findByCreationDateAfter(startOfMonth)
+                .stream()
+                .map(this::toCustomerDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<CustomerDTO> getCustomersLast6Months() {
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        return customerRepo.findByCreationDateAfter(sixMonthsAgo)
+                .stream()
+                .map(this::toCustomerDTO)
+                .collect(Collectors.toList());
+    }
+
+    private CustomerDTO toCustomerDTO(Customer customer) {
+        return CustomerDTO.builder()
+                .id(customer.getId())
+                .name(customer.getName())
+                .username(customer.getUsernameCustomer())
+                .email(customer.getEmail())
+                .role(customer.getRole())
+                .lastActive(customer.getLastActive() != null ? customer.getLastActive().toString() : null)
+                .loginDate(customer.getLoginDate() != null ? customer.getLoginDate().toString() : null)
+                .creationDate(customer.getCreationDate() != null ? customer.getCreationDate().format(formatter) : null)
+                .build();
+    }
+
 }

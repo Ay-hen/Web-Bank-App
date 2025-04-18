@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
 import demo.demo.model.Customer;
 import demo.demo.repository.CustomerRepo;
@@ -100,4 +101,15 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
         userService.transferMoney(ribSender, ribReceiver, amount);
         return ResponseEntity.ok("Transfer successful.");
     }
+
+    @GetMapping("/customers/month")
+    public ResponseEntity<List<CustomerDTO>> getCustomersThisMonth() {
+        return ResponseEntity.ok(userService.getCustomersThisMonth());
+    }
+
+    @GetMapping("/customers/6months")
+    public ResponseEntity<List<CustomerDTO>> getCustomersLast6Months() {
+        return ResponseEntity.ok(userService.getCustomersLast6Months());
+    }
+
 }
