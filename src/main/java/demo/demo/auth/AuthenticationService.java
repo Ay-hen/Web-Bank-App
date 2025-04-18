@@ -53,7 +53,8 @@ public class AuthenticationService {
                     .username(request.getUsername())
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
-                    .creationDate(LocalDateTime.now())
+                    .creationDate(request.getCreationDate())
+                    .lastActive(LocalDateTime.now())
                     .role(request.getRole())
                     .build();
     

@@ -1,5 +1,6 @@
 package demo.demo.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -12,11 +13,14 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import demo.demo.dto.CustomerResponse;
+import demo.demo.model.Customer;
+import demo.demo.repository.CustomerRepo;
 import demo.demo.service.UserService;
 
 @RestController
@@ -26,6 +30,9 @@ public class MainController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CustomerRepo customerRepo;
 
     @GetMapping("/permissions")
     public String getPermissions() {
@@ -43,15 +50,23 @@ public class MainController {
     }
 
     @GetMapping("/report/pdf")
-    public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
-        byte[] pdfBytes = userService.generateCustomerPdfReport(id);
+public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
+    Customer customer = customerRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.attachment().filename("report.pdf").build());
+    byte[] pdfBytes = userService.generateCustomerPdfReport(id);
 
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-    }
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(
+        ContentDisposition.attachment()
+                .filename(customer.getName().replaceAll(" ", "_") + "_report.pdf")
+                .build()
+    );
+
+    return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+}
+
 
     @GetMapping("/report/csv")
     public ResponseEntity<byte[]> downloadCsvReport(@RequestParam Long id) {
@@ -72,5 +87,17 @@ public class MainController {
     @GetMapping("/user/{id}/transactions")
     public ResponseEntity<List<Map<String, Object>>> getUserTransactions(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserTransactions(id));
+    }
+
+
+    @PostMapping("/transfer")
+    public ResponseEntity<String> sendMoney(
+            @RequestParam String ribSender,
+            @RequestParam String ribReceiver,
+            @RequestParam BigDecimal amount
+            ) {
+
+        userService.transferMoney(ribSender, ribReceiver, amount);
+        return ResponseEntity.ok("Transfer successful.");
     }
 }

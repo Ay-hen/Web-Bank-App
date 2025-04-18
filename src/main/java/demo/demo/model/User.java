@@ -10,21 +10,28 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Data
 @AllArgsConstructor
@@ -64,8 +71,10 @@ public class User  implements UserDetails {
 
     @Column(name = "is_online", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isOnline; 
+
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mma")
     @Column(name = "user_creation_date", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime creationDate; 
+    private LocalDateTime creationDate;
 
     @Column(name = "is_blocked", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isBlocked; 
@@ -79,11 +88,20 @@ public class User  implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Permission> permissions;
 
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "user_notifications",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "notification_id")
+    )
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
-        this.isOnline = false;     
+        this.isOnline = true;     
         this.isBlocked = false;   
-        this.creationDate = LocalDateTime.now();
+        //this.creationDate = LocalDateTime.now();
     }
 
     protected User(UserBuilder<?, ?> b) {

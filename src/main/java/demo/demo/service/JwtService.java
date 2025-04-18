@@ -49,7 +49,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 5)) 
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) 
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -79,11 +79,12 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        }catch (Exception e) {
-            throw new RuntimeException("Failed to extract claims", e);  
+        } catch (Exception e) {
+            e.printStackTrace(); // log the real exception
+            throw new RuntimeException("Failed to extract claims", e);
         }
-
     }
+    
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);

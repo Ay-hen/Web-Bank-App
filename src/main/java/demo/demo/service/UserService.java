@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,9 +26,11 @@ import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
 
 import jakarta.persistence.EntityNotFoundException;
-
+import jakarta.transaction.Transactional;
 import demo.demo.auth.PermissionResponse;
 import demo.demo.dto.CustomerResponse;
+import demo.demo.enums.TransactionStatus;
+import demo.demo.enums.TransactionType;
 import demo.demo.model.A2ATransfer;
 import demo.demo.model.Account;
 import demo.demo.model.ActivityTracking;
@@ -40,6 +43,7 @@ import demo.demo.repository.PermissionRepo;
 import demo.demo.repository.QRCodeRepo;
 import demo.demo.repository.UserRepo;
 import demo.demo.repository.A2ATransferRepo;
+import demo.demo.repository.AccountRepo;
 import demo.demo.repository.ActivityTrackingRepo;
 import demo.demo.repository.CustomerRepo;
 
@@ -199,30 +203,31 @@ public class UserService {
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
             Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
 
-            document.add(new Paragraph("Customer Report", titleFont));
+            document.add(new Paragraph(customer.getName()+" Report", titleFont));
             document.add(new Paragraph(" "));
 
-            document.add(new Paragraph("Name: " + customer.getName(), normalFont));
-            document.add(new Paragraph("Email: " + customer.getEmail()));
-            document.add(new Paragraph("CIN: " + customer.getCin()));
-            document.add(new Paragraph("Phone: " + customer.getPhoneNumber()));
-            document.add(new Paragraph("Birthday: " + customer.getBirthday()));
-            document.add(new Paragraph("Security Q&A: " + customer.getSecurityQuestion() + " / " + customer.getAnswer()));
+            document.add(new Paragraph("Name            :   " + customer.getName(), normalFont));
+            document.add(new Paragraph("Email           :   " + customer.getEmail()));
+            document.add(new Paragraph("CIN             :   " + customer.getCin()));
+            document.add(new Paragraph("Phone           :   " + customer.getPhoneNumber()));
+            document.add(new Paragraph("Birthday        :   " + customer.getBirthday()));
+            document.add(new Paragraph("Security Q&A    :   " + customer.getSecurityQuestion() + " / " + customer.getAnswer()));
             if (account != null) {
-                document.add(new Paragraph("RIB: " + account.getRib()));
-                document.add(new Paragraph("Amount: " + account.getAmount()));
+                document.add(new Paragraph("RIB         :   " + account.getRib()));
+                document.add(new Paragraph("Amount      :   " + account.getAmount()));
             }
             document.add(new Paragraph(" "));
 
-            document.add(new Paragraph("Activities:", titleFont));
+            document.add(new Paragraph("Activities      :   ", titleFont));
             for (ActivityTracking activity : activities) {
-                document.add(new Paragraph("- " + activity.getOperationType() + " on " + activity.getOperationDate()));
+                document.add(new Paragraph("- " + activity.getOperationType() + " on " + activity.getOperationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a"))
+                        + " : " + activity.getOperationDescription()));
             }
 
             List<Map<String, Object>> transactions = getUserTransactions(id);
 
             document.add(new Paragraph(" "));
-            document.add(new Paragraph("Transactions:", titleFont));
+            document.add(new Paragraph("Transactions    :   ", titleFont));
             for (Map<String, Object> tx : transactions) {
                 document.add(new Paragraph("- " + tx.get("direction") + " : " + tx.get("amount") + " (" + tx.get("type") + ") on " + tx.get("date")));
             }
@@ -268,7 +273,7 @@ public class UserService {
             csvPrinter.printRecord("Activity Date", "Operation Type", "Description");
 
             for (ActivityTracking activity : activities) {
-                csvPrinter.printRecord(activity.getOperationDate(), activity.getOperationType(), activity.getOperationDescription());
+                csvPrinter.printRecord(activity.getOperationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")), activity.getOperationType(), activity.getOperationDescription());
             }
 
             csvPrinter.println();
@@ -294,14 +299,28 @@ public class UserService {
         List<A2ATransfer> a2aTransfers = a2aTransferRepo.findAll();
         for (A2ATransfer transfer : a2aTransfers) {
             Map<String, Object> tx = new HashMap<>();
-            tx.put("sender", transfer.getAccountDebit().getCustomer().getName());
-            tx.put("recipient", transfer.getAccountCredit().getCustomer().getName());
+        
+            String senderName = "N/A";
+            String recipientName = "N/A";
+        
+            if (transfer.getAccountDebit() != null && transfer.getAccountDebit().getCustomer() != null) {
+                senderName = transfer.getAccountDebit().getCustomer().getName();
+            }
+        
+            if (transfer.getAccountCredit() != null && transfer.getAccountCredit().getCustomer() != null) {
+                recipientName = transfer.getAccountCredit().getCustomer().getName();
+            }
+        
+            tx.put("sender", senderName);
+            tx.put("recipient", recipientName);
             tx.put("amount", transfer.getAmount());
             tx.put("status", transfer.getTransactionStatus().name());
             tx.put("type", transfer.getTransactionType().name());
             tx.put("date", transfer.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+        
             transactions.add(tx);
         }
+        
 
         List<QRCode> qrCodes = qrCodeRepo.findAll();
         for (QRCode qr : qrCodes) {
@@ -319,38 +338,128 @@ public class UserService {
     }
 
     public List<Map<String, Object>> getUserTransactions(Long userId) {
-        Customer customer = customerRepo.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
-    
-        Account account = customer.getAccount();
-        if (account == null) return Collections.emptyList();
-    
         List<Map<String, Object>> transactions = new ArrayList<>();
+        Customer customer = customerRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        Account account = customer.getAccount();
     
-        List<A2ATransfer> a2aTransfers = a2aTransferRepo.findByAccountDebitOrAccountCredit(account, account);
-        for (A2ATransfer tx : a2aTransfers) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("type", tx.getTransactionType().name());
-            map.put("status", tx.getTransactionStatus().name());
-            map.put("amount", tx.getAmount());
-            map.put("date", tx.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
-            map.put("direction", tx.getAccountDebit().equals(account) ? "Sent" : "Received");
-            transactions.add(map);
+        List<A2ATransfer> a2aTransfers = a2aTransferRepo.findAll();
+        for (A2ATransfer transfer : a2aTransfers) {
+            Account debit = transfer.getAccountDebit();
+            Account credit = transfer.getAccountCredit();
+    
+            // skip invalid transfer
+            if (debit == null || credit == null) continue;
+    
+            Map<String, Object> tx = new HashMap<>();
+            tx.put("amount", transfer.getAmount());
+            tx.put("status", transfer.getTransactionStatus().name());
+            tx.put("type", transfer.getTransactionType().name());
+            tx.put("date", transfer.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+    
+            if (debit.equals(account)) {
+                tx.put("direction", "Sent to " + credit.getCustomer().getName());
+            } else if (credit.equals(account)) {
+                tx.put("direction", "Received from " + debit.getCustomer().getName());
+            } else {
+                continue; // not related to this user's account
+            }
+    
+            transactions.add(tx);
         }
     
-        List<QRCode> qrCodes = qrCodeRepo.findBySenderOrReceiver(account, account);
-        for (QRCode tx : qrCodes) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("type", tx.getTransactionType().name());
-            map.put("status", tx.getTransactionStatus().name());
-            map.put("amount", tx.getAmount());
-            map.put("date", tx.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
-            map.put("direction", tx.getSender() != null && tx.getSender().equals(account) ? "Sent" : "Received");
-            transactions.add(map);
+        List<QRCode> qrCodes = qrCodeRepo.findAll();
+        for (QRCode qr : qrCodes) {
+            Account sender = qr.getSender();
+            Account receiver = qr.getReceiver();
+    
+            // skip invalid QR code
+            if (sender == null || receiver == null) continue;
+    
+            Map<String, Object> tx = new HashMap<>();
+            tx.put("amount", qr.getAmount());
+            tx.put("status", qr.getTransactionStatus().name());
+            tx.put("type", qr.getTransactionType().name());
+            tx.put("date", qr.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+    
+            if (sender.equals(account)) {
+                tx.put("direction", "Sent to " + receiver.getCustomer().getName());
+            } else if (receiver.equals(account)) {
+                tx.put("direction", "Received from " + sender.getCustomer().getName());
+            } else {
+                continue;
+            }
+    
+            transactions.add(tx);
         }
     
         return transactions;
     }
     
 
+
+
+    
+    private AccountRepo accountRepo;
+
+    public boolean existsByRib(String rib) {
+        return accountRepo.existsByRib(rib);
+    }
+
+    public String getRib(String authenticator) {
+        return accountRepo.findByAuthenticator(authenticator)
+                .orElseThrow(() -> new RuntimeException("Account not found"))
+                .getRib();
+    }
+
+    @Transactional
+    public void transferMoney(String ribSender, String ribReceiver, BigDecimal amount) {
+        Account sender = null;
+        Account receiver = null;
+        Customer user = null;
+
+        try {
+            sender = accountRepo.findByRib(ribSender)
+                    .orElseThrow(() -> new RuntimeException("Sender account not found"));
+            receiver = accountRepo.findByRib(ribReceiver)
+                    .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+            user = sender.getCustomer();
+
+            if (sender.getAmount().compareTo(amount) < 0) {
+                throw new RuntimeException("Insufficient balance in sender's account");
+            }
+
+            sender.setAmount(sender.getAmount().subtract(amount));
+            receiver.setAmount(receiver.getAmount().add(amount));
+
+            accountRepo.save(sender);
+            accountRepo.save(receiver);
+
+            A2ATransfer a2aTransfer = A2ATransfer.builder()
+                    .amount(amount)
+                    .accountDebit(sender)
+                    .accountCredit(receiver)
+                    .accountDebitRib(sender.getRib())
+                    .accountCreditRib(ribReceiver)
+                    .transactionType(TransactionType.TRANSFER)
+                    .transactionStatus(TransactionStatus.COMPLETED)
+                    .dateTransaction(LocalDateTime.now())
+                    .build();
+
+            a2aTransferRepo.save(a2aTransfer);
+
+
+        } catch (Exception e) {
+            String errorMessage = "Transfer failed: " + e.getMessage();
+            List<Customer> recipients = new ArrayList<>();
+            if (sender != null && sender.getCustomer() != null) {
+                recipients.add(sender.getCustomer());
+            }
+            if (receiver != null && receiver.getCustomer() != null) {
+                recipients.add(receiver.getCustomer());
+            }
+
+            throw new RuntimeException("Transfer failed: " + e.getMessage(), e);
+        }
+    }
 }
