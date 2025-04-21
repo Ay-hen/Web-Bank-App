@@ -98,8 +98,9 @@ export class DashboardComponent implements OnInit {
         datasets: [{
           label: 'New Users',
           data: this.monthlyData.map(item => item.newUsers),
-          backgroundColor: '#4F46E5',
-          borderColor: '#4338CA',
+          backgroundColor: '#48cae4',
+          borderColor: '#48cae4',
+          borderRadius: 8, 
           borderWidth: 1
         }]
       },
@@ -120,8 +121,8 @@ export class DashboardComponent implements OnInit {
           label: 'Total Users',
           data: this.monthlyData.map(item => item.total),
           fill: false,
-          borderColor: '#10B981',
-          tension: 0.1
+          borderColor: '#0077b6',
+          tension: 0.4
         }]
       },
       options: {
@@ -139,8 +140,8 @@ export class DashboardComponent implements OnInit {
           label: 'Growth Rate (%)',
           data: percentageData.slice(1).map(item => item.percentageIncrease),
           fill: false,
-          borderColor: '#F59E0B',
-          tension: 0.1
+          borderColor: '#0077b6',
+          tension: 0.3
         }]
       },
       options: {
@@ -155,7 +156,7 @@ export class DashboardComponent implements OnInit {
         labels: this.customerSegments.map(item => item.name),
         datasets: [{
           data: this.customerSegments.map(item => item.value),
-          backgroundColor: ['#0088FE', '#00C49F', '#FFBB28'],
+          backgroundColor: ['#003daa', '#4F79E5', '#7CAEFF'],
           hoverOffset: 4
         }]
       },

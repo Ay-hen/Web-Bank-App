@@ -29,29 +29,6 @@ export class AppComponent implements OnInit {
     this.scroller.scrollToAnchor(sectionId);
   }
 
-  @HostListener('window:scroll', [])
-  onWindowScroll() {
-    const sections = ['home', 'service', 'process', 'about'];
-    let currentSection = '';
-    sections.forEach(sectionId => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        if (rect.top <= 0 && rect.bottom >= 0) {
-          currentSection = sectionId;
-        }
-      }
-    });
-    this.updateActiveLink(currentSection);
-  }
 
-  updateActiveLink(sectionId: string) {
-    const links = document.querySelectorAll('nav ul li a');
-    links.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('href') === `#${sectionId}`) {
-        link.classList.add('active');
-      }
-    });
-  }
+  
 }

@@ -97,27 +97,29 @@ export class NavbarComponent implements OnInit {
     }
   }
 
-  @HostListener('window:scroll')
-  onScroll() {
-    if (this.router.url === '/') {
-      const sections = ['home', 'service', 'process', 'about'];
-      const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-      
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const offsetTop = element.offsetTop;
-          const offsetHeight = element.offsetHeight;
-          
-          if (scrollPosition >= offsetTop - 100 && scrollPosition < offsetTop + offsetHeight - 100) {
-            if (this.activeSection !== section) {
-              this.activeSection = section;
-              history.replaceState(null, '', `#${section}`);
-            }
-            break;
-          }
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    const sections = ['home', 'service', 'process', 'about'];
+    let currentSection = '';
+    sections.forEach(sectionId => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= 0 && rect.bottom >= 0) {
+          currentSection = sectionId;
         }
       }
-    }
+    });
+    this.updateActiveLink(currentSection);
+  }
+
+  updateActiveLink(sectionId: string) {
+    const links = document.querySelectorAll('nav ul li a');
+    links.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${sectionId}`) {
+        link.classList.add('active');
+      }
+    });
   }
 }
