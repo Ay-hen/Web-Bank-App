@@ -112,4 +112,49 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
         return ResponseEntity.ok(userService.getCustomersLast6Months());
     }
 
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getDashboardStats(@RequestParam String timeFrame) {
+        return ResponseEntity.ok(userService.getDashboardStats(timeFrame));
+    }
+
+    @GetMapping("/stats/monthly-joins")
+    public ResponseEntity<Long> getMonthlyJoins() {
+        return ResponseEntity.ok(userService.getCustomersJoinedThisMonth());
+    }
+
+    @GetMapping("/stats/yearly-joins")
+    public ResponseEntity<Long> getYearlyJoins() {
+        return ResponseEntity.ok(userService.getCustomersJoinedThisYear());
+    }
+
+    @GetMapping("/stats/total-customers")
+    public ResponseEntity<Long> getTotalCustomers() {
+        return ResponseEntity.ok(userService.getTotalCustomers());
+    }
+
+    @GetMapping("/stats/growth-rate")
+    public ResponseEntity<?> getGrowthRate() {
+        return ResponseEntity.ok(userService.getCustomerGrowthRates());
+    }
+
+    @GetMapping("/stats/customers-months")
+    public ResponseEntity<?> customersRegister() {
+        return ResponseEntity.ok(userService.getCustomerRegistrationsLast6Months());
+    }
+
+    @GetMapping("/stats/customers-years")
+    public ResponseEntity<?> customersRegisterYears() {
+        return ResponseEntity.ok(userService.getCustomerRegistrationsByYear());
+    }
+
+    @GetMapping("/transactions/monthly")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyTransactionSummary() {
+        return ResponseEntity.ok(userService.getMonthlyTransactionAmountsLast6Months());
+    }
+
+    @GetMapping("/transactions/yearly")
+    public ResponseEntity<List<Map<String, Object>>> getYearlyTransactionSummary() {
+        return ResponseEntity.ok(userService.getYearlyTransactionAmounts());
+    }
 }

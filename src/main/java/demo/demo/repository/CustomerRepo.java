@@ -9,8 +9,6 @@ import demo.demo.model.Customer;
 
 @Repository
 public interface CustomerRepo extends JpaRepository<Customer, Long>{
-
-    List<Customer> findByCreationDateAfter(LocalDateTime date);
-
-    
+        List<Customer> findByCreationDateAfter(LocalDateTime date);
+        
 }

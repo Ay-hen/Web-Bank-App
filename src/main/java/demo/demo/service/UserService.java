@@ -7,12 +7,19 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
@@ -494,6 +501,198 @@ public class UserService {
                 .loginDate(customer.getLoginDate() != null ? customer.getLoginDate().toString() : null)
                 .creationDate(customer.getCreationDate() != null ? customer.getCreationDate().format(formatter) : null)
                 .build();
+    }
+
+
+    public Map<String, Object> getDashboardStats(String timeFrame) {
+        return null;
+    }
+
+    public long getCustomersJoinedThisMonth() {
+        List<Customer> allCustomers = customerRepo.findAll();
+    
+        LocalDate now = LocalDate.now();
+        int currentYear = now.getYear();
+        int currentMonth = now.getMonthValue();
+    
+        return allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .filter(c -> {
+                LocalDateTime creation = c.getCreationDate();
+                return creation.getYear() == currentYear && creation.getMonthValue() == currentMonth;
+            })
+            .count();
+    }
+    
+
+    public long getCustomersJoinedThisYear() {
+        List<Customer> allCustomers = customerRepo.findAll();
+
+        int currentYear = LocalDate.now().getYear();
+
+        return allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .filter(c -> c.getCreationDate().getYear() == currentYear)
+            .count();
+    }
+
+    public long getTotalCustomers() {
+        return customerRepo.count();
+    }
+    public long getTotalUsers() {
+        return userRepo.count();
+    }
+
+    public Map<String, Double> getCustomerGrowthRates() {
+        List<Customer> allCustomers = customerRepo.findAll();
+    
+        LocalDate now = LocalDate.now();
+        int currentYear = now.getYear();
+        int currentMonth = now.getMonthValue();
+    
+        // === Monthly Growth ===
+        long currentMonthCount = allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .filter(c -> {
+                LocalDateTime creation = c.getCreationDate();
+                return creation.getYear() == currentYear && creation.getMonthValue() == currentMonth;
+            })
+            .count();
+    
+        int prevMonth = currentMonth == 1 ? 12 : currentMonth - 1;
+        int prevMonthYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+    
+        long previousMonthCount = allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .filter(c -> {
+                LocalDateTime creation = c.getCreationDate();
+                return creation.getYear() == prevMonthYear && creation.getMonthValue() == prevMonth;
+            })
+            .count();
+    
+        double monthlyGrowth = previousMonthCount == 0
+            ? (currentMonthCount > 0 ? 100.0 : 0.0)
+            : ((currentMonthCount - previousMonthCount) / (double) previousMonthCount) * 100;
+    
+        // === Yearly Growth ===
+        long currentYearCount = allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .filter(c -> c.getCreationDate().getYear() == currentYear)
+            .count();
+    
+        long previousYearCount = allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .filter(c -> c.getCreationDate().getYear() == currentYear - 1)
+            .count();
+    
+        double yearlyGrowth = previousYearCount == 0
+            ? (currentYearCount > 0 ? 100.0 : 0.0)
+            : ((currentYearCount - previousYearCount) / (double) previousYearCount) * 100;
+    
+        // === Return Map ===
+        Map<String, Double> growthRates = new HashMap<>();
+        growthRates.put("monthly", monthlyGrowth);
+        growthRates.put("yearly", yearlyGrowth);
+    
+        return growthRates;
+    }
+    
+    
+    public List<Map<String, Object>> getCustomerRegistrationsLast6Months() {
+        LocalDate now = LocalDate.now();
+        LocalDate sixMonthsAgo = now.minusMonths(5).withDayOfMonth(1); // start from the beginning of that month
+
+        List<Customer> customers = customerRepo.findByCreationDateAfter(sixMonthsAgo.atStartOfDay());
+
+        Map<YearMonth, Long> countsByMonth = customers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .collect(Collectors.groupingBy(
+                c -> YearMonth.from(c.getCreationDate()),
+                Collectors.counting()
+            ));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            YearMonth month = YearMonth.from(now.minusMonths(5 - i));
+            long count = countsByMonth.getOrDefault(month, 0L);
+
+            Map<String, Object> monthData = new HashMap<>();
+            monthData.put("month", month.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+            monthData.put("count", count);
+            result.add(monthData);
+        }
+
+        return result;
+    }
+
+
+    public List<Map<String, Object>> getCustomerRegistrationsByYear() {
+        List<Customer> allCustomers = customerRepo.findAll();
+    
+        // Group by year of creation
+        Map<Integer, Long> countsByYear = allCustomers.stream()
+            .filter(c -> c.getCreationDate() != null)
+            .collect(Collectors.groupingBy(
+                c -> c.getCreationDate().getYear(),
+                TreeMap::new, // Sorted by year
+                Collectors.counting()
+            ));
+    
+        // Convert to list of maps
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<Integer, Long> entry : countsByYear.entrySet()) {
+            Map<String, Object> yearData = new HashMap<>();
+            yearData.put("year", entry.getKey());
+            yearData.put("count", entry.getValue());
+            result.add(yearData);
+        }
+    
+        return result;
+    }
+
+    @Autowired
+    private A2ATransferRepo a2aRepo;
+    
+    public List<Map<String, Object>> getMonthlyTransactionAmountsLast6Months() {
+    LocalDate now = LocalDate.now();
+    List<Map<String, Object>> results = new ArrayList<>();
+
+    for (int i = 5; i >= 0; i--) {
+        YearMonth yearMonth = YearMonth.from(now.minusMonths(i));
+        BigDecimal totalA2A = a2aRepo.findTotalAmountByMonth(yearMonth.getYear(), yearMonth.getMonthValue()).orElse(BigDecimal.ZERO);
+        BigDecimal totalQR = qrCodeRepo.findTotalAmountByMonth(yearMonth.getYear(), yearMonth.getMonthValue()).orElse(BigDecimal.ZERO);
+
+        BigDecimal total = totalA2A.add(totalQR);
+
+        results.add(Map.of(
+            "month", yearMonth.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase(),
+            "amount", total
+        ));
+    }
+
+    return results;
+}
+
+public List<Map<String, Object>> getYearlyTransactionAmounts() {
+    List<Integer> years = a2aRepo.findTransactionYears();
+    years.addAll(qrCodeRepo.findTransactionYears());
+    Set<Integer> uniqueYears = new TreeSet<>(years); // remove duplicates and sort
+
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    for (int year : uniqueYears) {
+        BigDecimal a2aTotal = a2aRepo.findTotalAmountByYear(year).orElse(BigDecimal.ZERO);
+        BigDecimal qrTotal = qrCodeRepo.findTotalAmountByYear(year).orElse(BigDecimal.ZERO);
+
+        BigDecimal total = a2aTotal.add(qrTotal);
+
+        result.add(Map.of(
+            "year", year,
+            "amount", total
+            ));
+        }
+
+        return result;
     }
 
 }

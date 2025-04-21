@@ -85,9 +85,8 @@ public class AuthenticationService {
 
     public ResponseEntity<?> login(LoginRequest request) {
         try{
-            Optional<User> userOpt = userRepo.findByUsername(request.getUsername());
 
-            System.out.println("User found: " + userOpt.get().getUsername());
+            Optional<User> userOpt = userRepo.findByUsername(request.getUsername());
 
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
@@ -97,7 +96,6 @@ public class AuthenticationService {
 
             boolean isPasswordValid = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-            System.out.println("Password valid: " + isPasswordValid);
 
             if (!isPasswordValid) {
                 return ResponseEntity.badRequest().body("Invalid password");
