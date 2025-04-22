@@ -1,62 +1,62 @@
-<div class="loading"></div>
 <app-dashboard-navbar></app-dashboard-navbar>
 
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1>Dashboard</h1>
-        <div class="time-selector">
-            <button [class.active]="timeFrame === 'monthly'" (click)="setTimeFrame('monthly')">Monthly</button>
-            <button [class.active]="timeFrame === 'yearly'" (click)="setTimeFrame('yearly')">Yearly</button>
-        </div>
-    </div>
-    
-    <div class="dashboard-stats">
-        <div class="stat-card">
-            <h3>Total Customers</h3>
-            <p class="stat-value">{{ totalCustomers }}</p>
-        </div>
-        <div class="stat-card">
-            <h3>New Users ({{ timeFrame === 'monthly' ? 'This Month' : 'This Year' }})</h3>
-            <p class="stat-value">{{ latestNewUsers }}</p>
-        </div>
-        <div class="stat-card">
-            <h3>Growth Rate</h3>
-            <p class="stat-value">{{ growthRate }}%</p>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
-        <div class="chart-container">
-            <h2>New Users</h2>
-            <div class="chart">
-                <canvas #newUsersChart></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <h2>Total User Growth</h2>
-            <div class="chart">
-                <canvas #totalUsersChart></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <h2>Total Transactions</h2>
-            <div class="chart">
-                <canvas #transactionChart></canvas>
-            </div>
-        </div>
-        
-        
-        <div class="chart-container">
-            <h2>Transaction Growth (%)</h2>
-            <div class="chart">
-                <canvas #percentageChart></canvas>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="container">
-    
-</div>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <div class="time-selector">
+                <button [class.active]="timeFrame === 'monthly'" (click)="setTimeFrame('monthly')">Monthly</button>
+                <button [class.active]="timeFrame === 'yearly'" (click)="setTimeFrame('yearly')">Yearly</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Total Customers</h3>
+                <p class="stat-value">{{ totalCustomers }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>New Users ({{ timeFrame === 'monthly' ? 'This Month' : 'This Year' }})</h3>
+                <p class="stat-value">{{ latestNewUsers }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Growth Rate</h3>
+                <p class="stat-value">{{ growthRate }}%</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <div class="chart-container">
+                <h2>New Users</h2>
+                <div class="chart">
+                    <canvas #newUsersChart></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Total User Growth</h2>
+                <div class="chart">
+                    <canvas #totalUsersChart></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Total Transactions</h2>
+                <div class="chart">
+                    <canvas #transactionChart></canvas>
+                </div>
+            </div>
+            
+            
+            <div class="chart-container">
+                <h2>Transaction Growth (%)</h2>
+                <div class="chart">
+                    <canvas #cumulativeTransactionChart></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+    </div>
