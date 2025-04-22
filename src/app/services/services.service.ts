@@ -207,4 +207,38 @@ downloadFile(url: string): Observable<Blob> {
       observe: 'events'
     });
   }
+
+  getMonthlyCustomerRegistrations() {
+    return this.http.get<any[]>('http://localhost:8181/api/v1/stats/customers-months');
+  }
+  
+  getCustomerRegistrationsByYear() {
+    return this.http.get<any[]>('http://localhost:8181/api/v1/stats/customers-years');
+  }
+  
+  getCustomerGrowthRate() {
+    return this.http.get<{ monthly: number, yearly: number }>('http://localhost:8181/api/v1/stats/growth-rate');
+  }
+  
+  getTotalCustomers() {
+    return this.http.get<number>('http://localhost:8181/api/v1/stats/total-customers');
+  }
+  
+  getMonthlyJoins() {
+    return this.http.get<number>('http://localhost:8181/api/v1/stats/monthly-joins');
+  }
+  
+  getYearlyJoins() {
+    return this.http.get<number>('http://localhost:8181/api/v1/stats/yearly-joins');
+  }
+  
+
+  getMonthlyTransactions() {
+    return this.http.get<any[]>('http://localhost:8181/api/v1/transactions/monthly');
+  }
+  
+  getYearlyTransactions() {
+    return this.http.get<any[]>('http://localhost:8181/api/v1/transactions/yearly');
+  }
+  
 }

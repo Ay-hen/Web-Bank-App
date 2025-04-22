@@ -1,3 +1,4 @@
+<div class="loading"></div>
 <app-dashboard-navbar></app-dashboard-navbar>
 
 <div class="dashboard-container">
@@ -40,16 +41,17 @@
         </div>
         
         <div class="chart-container">
-            <h2>User Growth Percentage</h2>
+            <h2>Total Transactions</h2>
             <div class="chart">
-                <canvas #percentageChart></canvas>
+                <canvas #transactionChart></canvas>
             </div>
         </div>
         
+        
         <div class="chart-container">
-            <h2>Customer Segments</h2>
-            <div class="chart pie-chart">
-                <canvas #segmentsChart></canvas>
+            <h2>Transaction Growth (%)</h2>
+            <div class="chart">
+                <canvas #percentageChart></canvas>
             </div>
         </div>
     </div>

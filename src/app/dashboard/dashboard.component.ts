@@ -1,4 +1,11 @@
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import { ServicesService } from '../services/services.service';
@@ -11,203 +18,288 @@ import Chart from 'chart.js/auto';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('newUsersChart') private newUsersChartRef!: ElementRef;
   @ViewChild('totalUsersChart') private totalUsersChartRef!: ElementRef;
   @ViewChild('percentageChart') private percentageChartRef!: ElementRef;
   @ViewChild('segmentsChart') private segmentsChartRef!: ElementRef;
-  
+
+  @ViewChild('transactionChart') private transactionChartRef!: ElementRef;
+  @ViewChild('cumulativeTransactionChart') private cumulativeTransactionChartRef!: ElementRef;  
+
+  private transactionChart?: Chart;
+private cumulativeTransactionChart?: Chart;
+
   service = inject(ServicesService);
   timeFrame: 'monthly' | 'yearly' = 'monthly';
-  
-  totalCustomers = '5,360';
-  latestNewUsers = '650';
-  growthRate = '12.1';
-  
-  // Chart instances
+
+  totalCustomers = '';
+  latestNewUsers = '';
+  growthRate = '';
+
   private newUsersChart?: Chart;
   private totalUsersChart?: Chart;
   private percentageChart?: Chart;
   private segmentsChart?: Chart;
-  
-  // Data
-  private monthlyData = [
-    { name: 'Jan', newUsers: 120, total: 1200 },
-    { name: 'Feb', newUsers: 150, total: 1350 },
-    { name: 'Mar', newUsers: 190, total: 1540 },
-    { name: 'Apr', newUsers: 210, total: 1750 },
-    { name: 'May', newUsers: 280, total: 2030 },
-    { name: 'Jun', newUsers: 320, total: 2350 },
-    { name: 'Jul', newUsers: 350, total: 2700 },
-    { name: 'Aug', newUsers: 410, total: 3110 },
-    { name: 'Sep', newUsers: 490, total: 3600 },
-    { name: 'Oct', newUsers: 530, total: 4130 },
-    { name: 'Nov', newUsers: 580, total: 4710 },
-    { name: 'Dec', newUsers: 650, total: 5360 }
-  ];
 
-  private yearlyData = [
-    { name: '2020', newUsers: 1200, total: 1200 },
-    { name: '2021', newUsers: 1800, total: 3000 },
-    { name: '2022', newUsers: 2400, total: 5400 },
-    { name: '2023', newUsers: 3600, total: 9000 },
-    { name: '2024', newUsers: 5300, total: 14300 }
-  ];
+  monthlyData: any[] = [];
+  yearlyData: any[] = [];
+  customerSegments: any[] = [];
+  transactionMonthlyData: any[] = [];
+  transactionYearlyData: any[] = [];
   
-  private customerSegments = [
-    { name: 'Premium', value: 2140 },
-    { name: 'Standard', value: 1890 },
-    { name: 'Basic', value: 1330 }
-  ];
-
-  constructor() { }
+  // Flag to track if charts have been initialized
+  private chartsInitialized = false;
 
   ngOnInit() {
-    // Fetch data from service if needed
-    // this.fetchData();
+    this.fetchDashboardStats();
   }
-  
+
   ngAfterViewInit() {
-    this.initializeCharts();
+    // We will initialize charts after data is available
   }
-  
-  setTimeFrame(timeFrame: 'monthly' | 'yearly') {
-    this.timeFrame = timeFrame;
+
+  fetchDashboardStats() {
+    this.service.getMonthlyCustomerRegistrations().subscribe((monthlyData) => {
+      console.log("---------------------> "+monthlyData);
+      this.monthlyData = monthlyData.map((item: any, index: number) => ({
+        name: item.month,
+        newUsers: item.count,
+        total: index === 0 ? item.count : item.count + this.monthlyData[index - 1]?.total || 0
+      }));
+      // We don't call updateCharts() here anymore
+      
+    });
+
+    this.service.getCustomerRegistrationsByYear().subscribe((yearlyData) => {
+      this.yearlyData = yearlyData.map((item: any, index: number) => ({
+        name: item.year,
+        newUsers: item.count,
+        total: index === 0 ? item.count : item.count + this.yearlyData[index - 1]?.total || 0
+      }));
+    });
+
+    this.service.getCustomerGrowthRate().subscribe((growth) => {
+      this.growthRate = this.timeFrame === 'monthly'
+        ? growth.monthly.toFixed(1)
+        : growth.yearly.toFixed(1);
+    });
+
+    this.service.getTotalCustomers().subscribe((total) => {
+      this.totalCustomers = total.toLocaleString();
+    });
+
+    this.service.getMonthlyJoins().subscribe((joins) => {
+      this.latestNewUsers = joins.toString();
+    });
+
     
-    // Update summary stats
-    if (timeFrame === 'monthly') {
-      this.totalCustomers = '5,360';
-      this.latestNewUsers = '650';
-      this.growthRate = '12.1';
-    } else {
-      this.totalCustomers = '14,300';
-      this.latestNewUsers = '5,300';
-      this.growthRate = '47.2';
-    }
-    
-    // Update charts
-    this.updateCharts();
-  }
-  
-  private initializeCharts() {
-    // New Users Bar Chart
-    this.newUsersChart = new Chart(this.newUsersChartRef.nativeElement, {
-      type: 'bar',
-      data: {
-        labels: this.monthlyData.map(item => item.name),
-        datasets: [{
-          label: 'New Users',
-          data: this.monthlyData.map(item => item.newUsers),
-          backgroundColor: '#48cae4',
-          borderColor: '#48cae4',
-          borderRadius: 8, 
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true }
-        }
+
+    // Get transaction data and initialize charts after data is available
+    this.service.getMonthlyTransactions().subscribe(data => {
+      this.transactionMonthlyData = data;
+      console.log("Monthly transactions loaded:", this.transactionMonthlyData);
+      
+      if (this.timeFrame === 'monthly' && !this.chartsInitialized) {
+        this.initializeCharts();
+        this.chartsInitialized = true;
+      } else if (this.timeFrame === 'monthly' && this.chartsInitialized) {
+        this.updateTransactionCharts(this.transactionMonthlyData);
       }
     });
     
-    // Total Users Line Chart
+    this.service.getYearlyTransactions().subscribe(data => {
+      this.transactionYearlyData = data;
+      console.log("Yearly transactions loaded:", this.transactionYearlyData);
+      
+      if (this.timeFrame === 'yearly' && !this.chartsInitialized) {
+        this.initializeCharts();
+        this.chartsInitialized = true;
+      } else if (this.timeFrame === 'yearly' && this.chartsInitialized) {
+        this.updateTransactionCharts(this.transactionYearlyData);
+      }
+    });
+  }
+
+  private updateTransactionCharts(data: any[]) {
+    if (!data || data.length === 0) {
+      console.warn('No data available for updating charts');
+      return;
+    }
+
+    console.log('Updating charts with data:', data);
+
+    if (this.newUsersChart) {
+      this.newUsersChart.data.labels = data.map(item => item.month || item.year);
+      this.newUsersChart.data.datasets[0].data = data.map(item => item.amount);
+      this.newUsersChart.update();
+    }
+  
+    if (this.totalUsersChart) {
+      this.totalUsersChart.data.labels = data.map(item => item.month || item.year);
+      this.totalUsersChart.data.datasets[0].data = data.reduce((acc: number[], curr: any, idx: number) => {
+        const currentAmount = typeof curr.amount === 'number' ? curr.amount : parseFloat(curr.amount);
+        const prevTotal = acc[idx - 1] || 0;
+        acc.push(prevTotal + currentAmount);
+        return acc;
+      }, []);
+      this.totalUsersChart.update();
+    }
+  
+    if (this.percentageChart) {
+      const percentageData = this.calculateTransactionGrowth(data);
+      this.percentageChart.data.labels = percentageData.slice(1).map(d => d.month || d.year);
+      this.percentageChart.data.datasets[0].data = percentageData.slice(1).map(d => d.percentageIncrease);
+      this.percentageChart.update();
+    }
+  }
+  
+  private calculateTransactionGrowth(data: any[]) {
+    return data.map((item, index) => {
+      if (index === 0) return { ...item, percentageIncrease: 0 };
+      const prev = data[index - 1];
+      const currentAmount = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount);
+      const prevAmount = typeof prev.amount === 'number' ? prev.amount : parseFloat(prev.amount);
+      
+      const increase = prevAmount === 0 ? 0 : ((currentAmount - prevAmount) / prevAmount) * 100;
+      return { ...item, percentageIncrease: parseFloat(increase.toFixed(2)) };
+    });
+  }
+
+  setTimeFrame(timeFrame: 'monthly' | 'yearly') {
+    this.timeFrame = timeFrame;
+    const data = timeFrame === 'monthly' ? this.transactionMonthlyData : this.transactionYearlyData;
+    
+    // Check if data is available
+    if (data && data.length > 0) {
+      this.updateTransactionCharts(data);
+    } else {
+      console.warn(`No ${timeFrame} transaction data available`);
+    }
+    
+    // Update growth rate when timeframe changes
+    this.service.getCustomerGrowthRate().subscribe((growth) => {
+      this.growthRate = this.timeFrame === 'monthly'
+        ? growth.monthly.toFixed(1)
+        : growth.yearly.toFixed(1);
+    });
+  }
+
+  private initializeCharts() {
+    const data = this.timeFrame === 'monthly' 
+      ? this.transactionMonthlyData 
+      : this.transactionYearlyData;
+
+      const userData = this.timeFrame === 'monthly' ? this.monthlyData : this.yearlyData;
+    
+    console.log('Initializing charts with data:', data);
+    console.log('Initializing charts with data user :', userData);
+    
+    if (!data || data.length === 0) {
+      console.warn('No transaction data available to initialize charts');
+      return;
+    }
+
+    // Destroy existing charts if they exist
+    if (this.newUsersChart) {
+      this.newUsersChart.destroy();
+    }
+    if (this.totalUsersChart) {
+      this.totalUsersChart.destroy();
+    }
+    if (this.percentageChart) {
+      this.percentageChart.destroy();
+    }
+    if (this.segmentsChart) {
+      this.segmentsChart.destroy();
+    }
+
+    this.newUsersChart = new Chart(this.newUsersChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: userData.map(item => item.name),
+        datasets: [{
+          label: 'New Users',
+          data: userData.map(item => item.newUsers),
+          backgroundColor: '#48cae4',
+          borderRadius: 8
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
     this.totalUsersChart = new Chart(this.totalUsersChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: this.monthlyData.map(item => item.name),
+        labels: userData.map(item => item.name),
         datasets: [{
           label: 'Total Users',
-          data: this.monthlyData.map(item => item.total),
+          data: userData.map(item => item.total),
           fill: false,
           borderColor: '#0077b6',
           tension: 0.4
         }]
       },
-      options: {
-        responsive: true
-      }
+      options: { responsive: true }
+    });
+
+    this.transactionChart = new Chart(this.transactionChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: data.map(item => item.month || item.year),
+        datasets: [{
+          label: 'Total Transactions (MAD)',
+          data: data.map(item => item.amount),
+          backgroundColor: '#48cae4',
+          borderRadius: 8
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
     
-    // Growth Percentage Chart
-    const percentageData = this.calculatePercentageIncrease(this.monthlyData);
+
+    // Initialize percentage growth chart
+    const percentageData = this.calculateTransactionGrowth(data);
     this.percentageChart = new Chart(this.percentageChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: percentageData.slice(1).map(item => item.name),
+        labels: percentageData.slice(1).map(item => item.month || item.year),
         datasets: [{
-          label: 'Growth Rate (%)',
+          label: 'Transaction Growth (%)',
           data: percentageData.slice(1).map(item => item.percentageIncrease),
           fill: false,
-          borderColor: '#0077b6',
-          tension: 0.3
+          borderColor: '#00b4d8',
+          tension: 0.4
         }]
       },
-      options: {
-        responsive: true
-      }
+      options: { responsive: true }
     });
-    
-    // Customer Segments Pie Chart
-    this.segmentsChart = new Chart(this.segmentsChartRef.nativeElement, {
-      type: 'pie',
-      data: {
-        labels: this.customerSegments.map(item => item.name),
-        datasets: [{
-          data: this.customerSegments.map(item => item.value),
-          backgroundColor: ['#003daa', '#4F79E5', '#7CAEFF'],
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true
-      }
-    });
+
+    // Initialize segments chart if data is available
+    if (this.customerSegments.length > 0) {
+      this.segmentsChart = new Chart(this.segmentsChartRef.nativeElement, {
+        type: 'pie',
+        data: {
+          labels: this.customerSegments.map(s => s.name),
+          datasets: [{
+            data: this.customerSegments.map(s => s.value),
+            backgroundColor: ['#003daa', '#4F79E5', '#7CAEFF'],
+            hoverOffset: 4
+          }]
+        },
+        options: { responsive: true }
+      });
+    }
+
   }
-  
-  private updateCharts() {
-    const data = this.timeFrame === 'monthly' ? this.monthlyData : this.yearlyData;
-    const percentageData = this.calculatePercentageIncrease(data);
-    
-    // Update New Users Chart
-    if (this.newUsersChart) {
-      this.newUsersChart.data.labels = data.map(item => item.name);
-      this.newUsersChart.data.datasets[0].data = data.map(item => item.newUsers);
-      this.newUsersChart.update();
-    }
-    
-    // Update Total Users Chart
-    if (this.totalUsersChart) {
-      this.totalUsersChart.data.labels = data.map(item => item.name);
-      this.totalUsersChart.data.datasets[0].data = data.map(item => item.total);
-      this.totalUsersChart.update();
-    }
-    
-    // Update Percentage Chart
-    if (this.percentageChart) {
-      this.percentageChart.data.labels = percentageData.slice(1).map(item => item.name);
-      this.percentageChart.data.datasets[0].data = percentageData.slice(1).map(item => item.percentageIncrease);
-      this.percentageChart.update();
-    }
-    
-    // No need to update the segments chart as it doesn't depend on timeframe
-  }
-  
+
+  // For backward compatibility
   private calculatePercentageIncrease(data: any[]) {
     return data.map((item, index) => {
-      if (index === 0) {
-        return { ...item, percentageIncrease: 0 };
-      }
-      const percentageIncrease = ((item.newUsers - data[index - 1].newUsers) / data[index - 1].newUsers) * 100;
-      return { ...item, percentageIncrease: parseFloat(percentageIncrease.toFixed(2)) };
+      if (index === 0) return { ...item, percentageIncrease: 0 };
+      const prev = data[index - 1];
+      const increase = prev.newUsers === 0 ? 0 : ((item.newUsers - prev.newUsers) / prev.newUsers) * 100;
+      return { ...item, percentageIncrease: parseFloat(increase.toFixed(2)) };
     });
-  }
-  
-  private fetchData() {
-    // You can implement this to fetch real data from your service
-    // this.service.getUserStats().subscribe(data => {
-    //   // Process and assign data
-    // });
   }
 }
