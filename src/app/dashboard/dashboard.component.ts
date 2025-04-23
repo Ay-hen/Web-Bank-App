@@ -58,6 +58,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   transactionMonthlyData: any[] = [];
   transactionYearlyData: any[] = [];
 
+  transactionMonthlyGrowthRate: any[] = [];
+  transactionYearlyGrowthRate: any[] = [];
+
   ngOnInit() {
     // No need to fetch data here; do it after view init to access ViewChild elements
   }
@@ -74,7 +77,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       total: this.service.getTotalCustomers(),
       joins: this.service.getMonthlyJoins(),
       monthlyTransactions: this.service.getMonthlyTransactions(),
-      yearlyTransactions: this.service.getYearlyTransactions()
+      yearlyTransactions: this.service.getYearlyTransactions(),
+      monthlyTxGrowth: this.service.getMonthlyTransactionGrowthRate(),
+      yearlyTxGrowth: this.service.getYearlyTransactionGrowthRate()
     }).subscribe({
       next: (results) => {
         const {
@@ -84,7 +89,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           total,
           joins,
           monthlyTransactions,
-          yearlyTransactions
+          yearlyTransactions,
+          monthlyTxGrowth,
+          yearlyTxGrowth
         } = results;
 
         // Process user data
@@ -107,6 +114,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         // Process transaction data
         this.transactionMonthlyData = monthlyTransactions;
         this.transactionYearlyData = yearlyTransactions;
+
+        this.transactionMonthlyGrowthRate = monthlyTxGrowth.map((item: any) => ({
+          month: item.month ?? '',
+          growth: item.growth ?? 0
+        }));
+        
+        this.transactionYearlyGrowthRate = yearlyTxGrowth.map((item: any) => ({
+          year: item.year ?? '', 
+          growth: item.growth ?? 0
+        }));
+        
+        
+
+        console.log('Monthly Data:', monthlyTxGrowth);
+        console.log('Yearly Data:', yearlyTxGrowth);
+        console.log('Monthly Transactions **** :', this.transactionYearlyGrowthRate);
+
 
         // Initialize charts after a short delay to ensure ViewChilds are available
         setTimeout(() => {
@@ -137,8 +161,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const txData = this.timeFrame === 'monthly' ? this.transactionMonthlyData : this.transactionYearlyData;
     const userData = this.timeFrame === 'monthly' ? this.monthlyData : this.yearlyData;
 
-    console.log('Initializing charts with transaction data:', txData);
-    console.log('Initializing charts with user data:', userData);
+    const percentageData = this.timeFrame === 'monthly'
+      ? this.transactionMonthlyGrowthRate
+      : this.transactionYearlyGrowthRate;
+
+    
 
     if (!txData || txData.length === 0) {
       console.warn('No transaction data available to initialize transaction charts');
@@ -151,7 +178,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.percentageChart?.destroy();
     this.segmentsChart?.destroy();
     this.transactionChart?.destroy();
-    this.cumulativeTransactionChart?.destroy();
+    //this.cumulativeTransactionChart?.destroy();
     this.transactionGrowthChart?.destroy();
 
     // Initialize User Charts
@@ -197,36 +224,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         }]
       },
       options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
+    });    
 
-    this.cumulativeTransactionChart = new Chart(this.cumulativeTransactionChartRef.nativeElement, {
-      type: 'line',
-      data: {
-        labels: txData.map(item => item.month || item.year),
-        datasets: [{
-          label: 'Cumulative Transactions (MAD)',
-          data: txData.reduce((acc: number[], curr: any, idx: number) => {
-            const amt = typeof curr.amount === 'number' ? curr.amount : parseFloat(curr.amount);
-            const prev = acc[idx - 1] || 0;
-            acc.push(prev + amt);
-            return acc;
-          }, []),
-          fill: false,
-          borderColor: '#0077b6',
-          tension: 0.4
-        }]
-      },
-      options: { responsive: true }
-    });
-
-    const percentageData = this.calculateTransactionGrowth(txData);
     this.transactionGrowthChart = new Chart(this.percentageChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: percentageData.slice(1).map(item => item.month || item.year),
+        labels: percentageData.map(item => item.month || item.year),
         datasets: [{
           label: 'Transaction Growth (%)',
-          data: percentageData.slice(1).map(item => item.percentageIncrease),
+          data: percentageData.map(item => item.growth),
           fill: false,
           borderColor: '#00b4d8',
           tension: 0.4
@@ -235,21 +241,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       options: { responsive: true }
     });
 
-    // Initialize segments chart if available (for user segments)
-    if (this.customerSegments.length > 0) {
-      this.segmentsChart = new Chart(this.segmentsChartRef.nativeElement, {
-        type: 'pie',
-        data: {
-          labels: this.customerSegments.map(s => s.name),
-          datasets: [{
-            data: this.customerSegments.map(s => s.value),
-            backgroundColor: ['#003daa', '#4F79E5', '#7CAEFF'],
-            hoverOffset: 4
-          }]
-        },
-        options: { responsive: true }
-      });
-    }
   }
 
   private updateTransactionCharts(data: any[]) {
@@ -279,10 +270,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     // Update Transaction Growth Chart
     if (this.transactionGrowthChart) {
-      const percentageData = this.calculateTransactionGrowth(data);
-      this.transactionGrowthChart.data.labels = percentageData.slice(1).map(d => d.month || d.year);
-      this.transactionGrowthChart.data.datasets[0].data = percentageData.slice(1).map(d => d.percentageIncrease);
-      this.transactionGrowthChart.update();
+      const growthData = this.timeFrame === 'monthly'
+        ? this.transactionMonthlyGrowthRate
+        : this.transactionYearlyGrowthRate;
+        
+      if (growthData && growthData.length > 0) {
+        this.transactionGrowthChart.data.labels = growthData.map(item => item.month || item.year);
+        this.transactionGrowthChart.data.datasets[0].data = growthData.map(item => item.growth);
+        this.transactionGrowthChart.update();
+      } else {
+        console.warn(`No growth data available for ${this.timeFrame} view`);
+      }
     }
   }
 
