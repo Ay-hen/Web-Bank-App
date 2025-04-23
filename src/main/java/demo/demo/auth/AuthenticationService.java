@@ -55,14 +55,14 @@ public class AuthenticationService {
                     .password(passwordEncoder.encode(request.getPassword()))
                     .creationDate(request.getCreationDate())
                     .lastActive(LocalDateTime.now())
-                    .role(request.getRole())
+                    .role(request.getRole().toUpperCase())
                     .build();
     
             // Save the user first to generate an ID
             userRepo.save(user);
     
             // Assign permissions if role is admin
-            if ("admin".equalsIgnoreCase(request.getRole()) && request.getPermissions() != null) {
+            if ("ADMIN".equalsIgnoreCase(request.getRole().toUpperCase()) && request.getPermissions() != null) {
                 List<Permission> permissionEntities = request.getPermissions().stream()
                     .map(p -> Permission.builder()
                         .permission(p)

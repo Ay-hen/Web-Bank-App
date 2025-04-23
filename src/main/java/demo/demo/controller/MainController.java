@@ -36,8 +36,8 @@ public class MainController {
     private CustomerRepo customerRepo;
 
     @GetMapping("/permissions")
-    public String getPermissions() {
-        return "Permissions list";
+    public ResponseEntity<?> getPermissions() {
+        return ResponseEntity.ok(userService.getPermissions());
     }
 
     @GetMapping("/customers")
@@ -157,4 +157,15 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
     public ResponseEntity<List<Map<String, Object>>> getYearlyTransactionSummary() {
         return ResponseEntity.ok(userService.getYearlyTransactionAmounts());
     }
+
+    @GetMapping("/transaction/growth-rate/monthly")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyGrowthRates() {
+        return ResponseEntity.ok(userService.getMonthlyTransactionGrowthRates());
+    }
+
+    @GetMapping("/transaction/growth-rate/yearly")
+    public ResponseEntity<List<Map<String, Object>>> getYearlyGrowthRates() {
+        return ResponseEntity.ok(userService.getYearlyTransactionGrowthRates());
+    }
+
 }

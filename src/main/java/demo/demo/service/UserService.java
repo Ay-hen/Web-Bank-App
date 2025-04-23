@@ -3,7 +3,10 @@ package demo.demo.service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,6 +38,7 @@ import com.lowagie.text.pdf.PdfWriter;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+
 import demo.demo.auth.PermissionResponse;
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
@@ -695,4 +699,94 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         return result;
     }
 
+    public Map<String, Long> getCustomerSegments() {
+        return customerRepo.findAll().stream()
+            .filter(c -> c.getRole() != null)
+            .collect(Collectors.groupingBy(
+                Customer::getRole, Collectors.counting()
+            ));
+    }
+    
+    public List<Map<String, Object>> getMonthlyTransactionGrowthRates() {
+        List<Map<String, Object>> monthlyData = getMonthlyTransactionAmountsLast6Months();
+        List<Map<String, Object>> growthList = new ArrayList<>();
+    
+        for (int i = 0; i < monthlyData.size(); i++) {
+            Map<String, Object> current = monthlyData.get(i);
+            String month = (String) current.get("month");
+            BigDecimal currentAmount = (BigDecimal) current.get("amount");
+    
+            double growth = 0.0;
+            if (i > 0) {
+                BigDecimal previousAmount = (BigDecimal) monthlyData.get(i - 1).get("amount");
+                growth = previousAmount.compareTo(BigDecimal.ZERO) == 0
+                    ? (currentAmount.compareTo(BigDecimal.ZERO) > 0 ? 100.0 : 0.0)
+                    : currentAmount.subtract(previousAmount)
+                        .divide(previousAmount, 4, RoundingMode.HALF_UP)
+                        .doubleValue() * 100;
+            }
+    
+            Map<String, Object> result = new HashMap<>();
+            result.put("month", month);
+            result.put("amount", currentAmount);
+            result.put("growth", Math.round(growth * 10) / 10.0);
+            growthList.add(result);
+        }
+    
+        return growthList;
+    }
+
+    public List<Map<String, Object>> getYearlyTransactionGrowthRates() {
+        List<Map<String, Object>> yearlyData = getYearlyTransactionAmounts();
+        List<Map<String, Object>> growthList = new ArrayList<>();
+        
+        for (int i = 0; i < yearlyData.size(); i++) {
+            Map<String, Object> current = yearlyData.get(i);
+            String year = String.valueOf(current.get("year"));
+            BigDecimal currentAmount = (BigDecimal) current.get("amount");
+            
+            double growth = 0.0;
+            if (i > 0) {
+                BigDecimal previousAmount = (BigDecimal) yearlyData.get(i - 1).get("amount");
+                if (previousAmount.compareTo(BigDecimal.ZERO) == 0) {
+                    // Handle division by zero case
+                    growth = currentAmount.compareTo(BigDecimal.ZERO) > 0 ? 100.0 : 0.0;
+                } else {
+                    // Calculate percentage growth
+                    growth = currentAmount.subtract(previousAmount)
+                        .multiply(new BigDecimal(100))
+                        .divide(previousAmount, 4, RoundingMode.HALF_UP)
+                        .doubleValue();
+                }
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("year", year);
+            result.put("amount", currentAmount);
+            result.put("growth", Math.round(growth * 10) / 10.0);
+            growthList.add(result);
+        }
+        
+        return growthList;
+    }
+    
+    public List<Map<String, String>> getPermissions() {
+        List<Map<String, String>> permissions = new ArrayList<>();
+        
+        addPermission(permissions, "VIEW_DASHBOARD", "View Dashboard");
+        addPermission(permissions, "MANAGE_USERS", "Manage Users");
+        addPermission(permissions, "MANAGE_FEEDBACK", "Manage Feedback");
+        addPermission(permissions, "MANAGE_TRANSACTIONS", "Manage Transactions");
+        addPermission(permissions, "MANAGE_NOTIFICATIONS", "Manage Notifications");
+        addPermission(permissions, "MANAGE_ADMIN", "Manage Admin");
+        
+        return permissions;
+    }
+    
+    private void addPermission(List<Map<String, String>> permissions, String code, String name) {
+        Map<String, String> permission = new HashMap<>();
+        permission.put("code", code);
+        permission.put("name", name);
+        permissions.add(permission);
+    }
 }
