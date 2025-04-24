@@ -1,7 +1,7 @@
 import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import { ServicesService } from '../services/services.service';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpResponse } from '@angular/common/http';
 
 
 type Customer = {
@@ -30,6 +30,8 @@ export class UserManagementComponent implements OnInit {
     return Math.floor(this.filteredCustomers().length / this.itemsPerPage);
   }
 
+  constructor(private http : HttpClient) { }
+
   selectedTab : string = 'tab1'; // Default tab
 
   searchQuery = signal('');
@@ -46,10 +48,20 @@ export class UserManagementComponent implements OnInit {
   ngOnInit(): void {
     this.service.getCustomers().subscribe(data => {
       this.customers.set(data);
-      console.log('Customers:', this.customers());
+      //console.log('Customers:', this.customers());
       this.loading.set(false);
     });
 
+    this.http.get<{ code: string; name: string }[]>('http://localhost:8181/api/v1/permissions').subscribe({
+      next: (permissions) => {
+        this.availablePermissions.set(permissions);
+        this.filteredPermissions.set(permissions);
+        console.log('Permissions:', permissions);
+      },
+      error: (err) => {
+        console.error('Failed to load permissions:', err);
+      }
+    });
   }
 
   customers = signal<any[]>([]);
@@ -239,26 +251,11 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
   permissionSearch = signal('');
   
   // Permissions
-  availablePermissions = [
-    'User Management', 
-    'Content Management', 
-    'System Settings', 
-    'Audit Logs', 
-    'Financial Reports', 
-    'Customer Data', 
-    'Analytics', 
-    'API Access',
-    'Billing Management',
-    'User Profile Editing',
-    'Database Management',
-    'Email Templates',
-    'Security Controls',
-    'Backup & Recovery',
-    'Third-party Integrations'
-  ];
+  availablePermissions = signal<{ code: string; name: string }[]>([]);
+  filteredPermissions = signal<{ code: string; name: string }[]>([]);
+
   
   selectedPermissions = signal<string[]>([]);
-  filteredPermissions = signal<string[]>(this.availablePermissions);
   
   selectRole(event: Event): void {
     const select = event.target as HTMLSelectElement;
@@ -277,106 +274,98 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
   }
   
   filterPermissionsSearch(searchTerm: string): void {
-    
     const term = searchTerm.toLowerCase().trim();
-    
-    this.permissionSearch.set(term.toLowerCase().trim());
+    this.permissionSearch.set(term);
   
-    if (!this.permissionSearch()) {
-      this.filteredPermissions.set([]);
-      return;
-    }
-
-    if (!term) {
-      // Show all permissions except those already selected
-      this.filteredPermissions.set(
-        this.availablePermissions.filter(p => 
-          !this.selectedPermissions().includes(p)
-        )
-      );
-      return;
-    }
-    
-    // Filter by search term and exclude already selected permissions
+    const selected = this.selectedPermissions();
+  
     this.filteredPermissions.set(
-      this.availablePermissions.filter(p => 
-        p.toLowerCase().includes(term) && 
-        !this.selectedPermissions().includes(p)
+      this.availablePermissions().filter(p =>
+        p.name.toLowerCase().includes(term) && !selected.includes(p.code)
       )
     );
   }
   
-  addPermission(permission: string): void {
-    if (!this.selectedPermissions().includes(permission)) {
-      // Create a new array with the added permission
-      this.selectedPermissions.update(perms => [...perms, permission]);
-      
-      // Update filtered permissions to remove the selected one
+  
+  addPermission(name: string): void {
+    if (!this.selectedPermissions().includes(name)) {
+      this.selectedPermissions.update(perms => [...perms, name]);
+  
       this.filteredPermissions.update(perms => 
-        perms.filter(p => p !== permission)
+        perms.filter(p => p.name !== name)
       );
     }
   }
   
-  removePermission(permission: string): void {
-    // Remove from selected permissions
+  
+  removePermission(code: string): void {
     this.selectedPermissions.update(perms =>
-      perms.filter(p => p !== permission)
+      perms.filter(p => p !== code)
     );
-    
-    // Add back to filtered permissions if it matches current filter
-    this.filteredPermissions.update(perms => [...perms, permission].sort());
-  }
-
-  createUser(): void {
-    // Form validation
-    if (!this.username() || !this.email() || !this.password() || !this.confirmPassword()) {
-      alert('Please fill in all required fields');
-      return;
-    }
-    
-    if (this.password() !== this.confirmPassword()) {
-      alert('Passwords do not match');
-      return;
-    }
-    
-    // Create user object based on role
-    const userData = {
-      username: this.username(),
-      email: this.email(),
-      role: this.selectedRole(),
-      permissions: this.selectedRole() === 'admin' ? this.selectedPermissions() : []
-    };
-    
-    // In a real application, you would send this data to your API
-    console.log('Creating user:', userData);
-    alert(`${this.selectedRole()} created successfully!`);
-    
-    // Reset form
-    this.username.set('');
-    this.email.set('');
-    this.password.set('');
-    this.confirmPassword.set('');
-    
-    
-    if (this.selectedRole() === 'admin') {
-      this.selectedPermissions.set([]);
-      this.filteredPermissions.set(this.availablePermissions);
-    }
-  }
-
-  onInputChange(field: string, value: string) {
-    if (field === 'username') {
-      this.username.set(value);
-    } else if (field === 'email') {
-      this.email.set(value);
-    } else if (field === 'password') {
-      this.password.set(value);
-    } else if (field === 'confirmPassword') {
-      this.confirmPassword.set(value);
+  
+    const permission = this.availablePermissions().find(p => p.code === code);
+    if (permission) {
+      this.filteredPermissions.update(perms => [...perms, permission]);
     }
   }
   
+
+  formData: any = {
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  };
+  
+  onInputChange(field: string, value: string) {
+    this.formData[field] = value;
+  }
+
+  
+  createUser() {
+    const requestBody = {
+      name: this.formData.name || '',
+      username: this.formData.username,
+      email: this.formData.email,
+      password: this.formData.password,
+      role: this.selectedRole(),
+      creationDate: new Date().toISOString(),
+      permissions: this.selectedRole() === 'admin' ? this.selectedPermissions() : []
+    };
+  
+    console.log('Sending request:', requestBody);
+  
+    this.http.post('http://localhost:8181/user/auth/create-user', requestBody, {
+      responseType: 'text' // This tells Angular to expect text, not JSON
+    }).subscribe({
+      next: (response) => {
+        console.log('Success response:', response);
+        this.showNotification('User created successfully', 'success');
+        this.resetForm();
+      },
+      error: (err) => {
+        console.error('Error response:', err);
+        const errorMessage = err.error?.message || err.error || 'Error creating user';
+        this.showNotification(errorMessage, 'error');
+      }
+    });
+  }
+  
+
+
+  resetForm() {
+    this.formData = {
+      name: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    };
+    
+  }
+  
+
   showDropdown = signal<boolean>(false);
 
   toggleDropdown(): void {
@@ -391,17 +380,19 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
 
   private updateFilteredPermissions(term: string): void {
     const searchTerm = term.toLowerCase().trim();
-    
+  
     this.filteredPermissions.set(
-      this.availablePermissions.filter(p => 
-        p.toLowerCase().includes(searchTerm) && 
-        !this.selectedPermissions().includes(p)
+      this.availablePermissions().filter(p =>
+        p.name.toLowerCase().includes(searchTerm) &&
+        !this.selectedPermissions().includes(p.code)
       )
     );
   }
-  isSelected(perm: string): boolean {
-    return this.selectedPermissions().includes(perm);
+  
+  isSelected(code: string): boolean {
+    return this.selectedPermissions().includes(code);
   }
+  
 
   @HostListener('document:click', ['$event'])
       onDocumentClick(event: MouseEvent): void {
@@ -468,4 +459,30 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
     }
   }
   
+  notification = signal<{ message: string, type: 'success' | 'error' } | null>(null);
+
+  private showNotification(message: string, type: 'success' | 'error') {
+    // Clear any existing notifications first
+    this.notification.set(null);
+    
+    // Set new notification after a short delay to ensure animations work correctly
+    setTimeout(() => {
+      this.notification.set({ message, type });
+      this.resetForm();
+      // Clear after 4 seconds with exit animation
+      setTimeout(() => {
+        const notificationElement = document.querySelector('.notification-popup');
+        if (notificationElement) {
+          notificationElement.classList.add('hiding');
+          
+          // Wait for animation to complete before removing
+          setTimeout(() => {
+            this.notification.set(null);
+          }, 300); // Match the animation duration
+        } else {
+          this.notification.set(null);
+        }
+      }, 4000);
+    }, 100);
+  }
 }

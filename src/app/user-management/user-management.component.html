@@ -182,13 +182,30 @@
                     <div class="user-form-container">
                     <h3>Create User</h3>
             
+                    
+
+
                     <div class="form-group">
+
+                        <label for="username">Name</label>
+                        <input
+                        type="text"
+                        id="name"
+                        placeholder="Enter name"
+                        (input)="onInputChange('name', $any($event).target.value)"
+                        [value]="formData.name"
+                        class="form-input"
+                        >
+                    </div>
+                    <div class="form-group">
+
                         <label for="username">Username</label>
                         <input
                         type="text"
                         id="username"
                         placeholder="Enter username"
                         (input)="onInputChange('username', $any($event).target.value)"
+                        [value]="formData.username"
                         class="form-input"
                         >
                     </div>
@@ -200,6 +217,7 @@
                         id="email"
                         placeholder="Enter email address"
                         (input)="onInputChange('email', $any($event).target.value)"
+                        [value]="formData.email"
                         class="form-input"
                         >
                     </div>
@@ -211,6 +229,7 @@
                         id="password"
                         placeholder="Enter password"
                         (input)="onInputChange('password', $any($event).target.value)"
+                        [value]="formData.password"
                         class="form-input"
                         >
                     </div>
@@ -222,6 +241,7 @@
                         id="confirmPassword"
                         placeholder="Confirm password"
                         (input)="onInputChange('confirmPassword', $any($event).target.value)"
+                        [value]="formData.confirmPassword"
                         class="form-input"
                         >
                     </div>
@@ -245,12 +265,25 @@
                         <h3>Create Admin</h3>
 
                         <div class="form-group">
+                        <label for="username">Name</label>
+                        <input
+                        type="text"
+                        id="name"
+                        placeholder="Enter name"
+                        (input)="onInputChange('name', $any($event).target.value)"
+                        [value]="formData.name"
+                        class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-group">
                         <label for="username">Username</label>
                         <input
                         type="text"
                         id="username"
                         placeholder="Enter username"
                         (input)="onInputChange('username', $any($event).target.value)"
+                        [value]="formData.username"
                         class="form-input"
                         >
                     </div>
@@ -262,6 +295,7 @@
                         id="email"
                         placeholder="Enter email address"
                         (input)="onInputChange('email', $any($event).target.value)"
+                        [value]="formData.email"
                         class="form-input"
                         >
                     </div>
@@ -273,6 +307,7 @@
                         id="password"
                         placeholder="Enter password"
                         (input)="onInputChange('password', $any($event).target.value)"
+                        [value]="formData.password"
                         class="form-input"
                         >
                     </div>
@@ -284,6 +319,7 @@
                         id="confirmPassword"
                         placeholder="Confirm password"
                         (input)="onInputChange('confirmPassword', $any($event).target.value)"
+                        [value]="formData.confirmPassword"
                         class="form-input"
                         >
                     </div>
@@ -342,12 +378,12 @@
                                 @if (filteredPermissions().length > 0) {
                                     @for (perm of filteredPermissions(); track perm) {
                                     <div class="option"
-                                        (click)="addPermission(perm); $event.stopPropagation()"
+                                        (click)="addPermission(perm.name); $event.stopPropagation()"
                                     >
                                         <span class="checkbox">
-                                        @if (isSelected(perm)) { }
+                                        @if (isSelected(perm.code)) { }
                                         </span>
-                                        <span class="option-label">{{perm}}</span>
+                                        <span class="option-label">{{perm.name}}</span>
                                     </div>
                                     }
                                 } @else {
@@ -386,7 +422,6 @@
         <h2>Select a tab to view content</h2>
         }
     }
-
 
     @if (selectedMessage()) {
         <div class="message-popup-overlay" (click)="closePopup()">
@@ -439,5 +474,12 @@
             </div>
         </div>
     }
-
+    @if (notification()) {
+        <div class="notification-popup" [class]="notification()?.type">
+          <div class="notification-content">
+            <span class="notification-message">{{ notification()?.message }}</span>
+            <button class="notification-close" (click)="notification.set(null)">×</button>
+          </div>
+        </div>
+    }
 </div>

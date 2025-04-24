@@ -4,7 +4,7 @@ import { ServicesService } from '../services/services.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const expectedRole = route.data['role'] as string;
-  const requiredPermission = route.data['permission'] as string; // optional
+  const requiredPermission = route.data['permission'] as string;
 
   const authService = inject(ServicesService);
   const routerService = inject(Router);
@@ -20,9 +20,9 @@ export const authGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // Role mismatch
+  // Role mismatch → redirect based on current role
   if (expectedRole && expectedRole !== userRole) {
-    switch (userRole) {
+    switch (userRole?.toLowerCase()) {
       case 'user':
         routerService.navigate(['/user-dashboard']);
         break;
@@ -35,12 +35,22 @@ export const authGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // Permission check (only if required)
-  if (requiredPermission && !userPermissions.includes(requiredPermission)) {
-    routerService.navigate([currentUrl]);
+  // Normalize required permission
+  const normalizedRequiredPermission = requiredPermission
+    ? requiredPermission.toUpperCase().replace(/\s+/g, '_')
+    : null;
+
+  // Normalize user permissions
+  const normalizedUserPermissions = userPermissions.map((perm: string) =>
+    perm.toUpperCase().replace(/\s+/g, '_')
+  );
+
+  // Permission check
+  if (normalizedRequiredPermission && !normalizedUserPermissions.includes(normalizedRequiredPermission)) {
+    routerService.navigate([currentUrl]); // Optional: you could use /unauthorized too
     return false;
   }
 
   return true;
-
 };
+

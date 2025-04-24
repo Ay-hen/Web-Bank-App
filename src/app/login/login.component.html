@@ -3,21 +3,53 @@
 <div class="container">
     <div class="login">
         <form (submit)="login()" class="form-container">
-            <h1>Login</h1>
-            <div class="input-container">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" (input)="username.set($any($event.target).value)" required>
-            </div>
-            <div class="input-container">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" (input)="password.set($any($event.target).value)" required>
-            </div>
-            <div class="forget-password">
-                <a href="#">Forget Password ?</a>
-            </div>
-            <button type="submit" >Login</button>
+          <!-- Error Popup Inside Login -->
+           @if(showErrorPopup()) {
+            <div class="inline-error-popup">
+                <div class="error-popup">
+                  <div class="error-popup-content">
+                    <img src="error.svg" alt="">
+                    <span class="error-message-popup">{{ loginError() }}</span>
+                  </div>
+                  <button class="close-button" (click)="closeErrorPopup()">✕</button>
+                </div>
+              </div>
+          }
+          
+          <h1>Login</h1>
+      
+          <div class="input-container">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              (input)="onInput('username', $any($event).target.value)"
+              [class.input-error]="loginError() && !usernameWritten"
+              required
+            />
+          </div>
+      
+          <div class="input-container">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              (input)="onInput('password', $any($event).target.value)"
+              [class.input-error]="loginError() && !passwordWritten"
+              required
+            />
+          </div>
+      
+          <div class="forget-password">
+            <a href="#">Forget Password ?</a>
+          </div>
+      
+          <button type="submit">Login</button>
         </form>
-    </div>
+      </div>
+      
     <div class="image-container">
         <img src="login.svg" alt="Login Image">
     </div>
