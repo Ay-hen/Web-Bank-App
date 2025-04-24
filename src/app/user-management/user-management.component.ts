@@ -414,12 +414,46 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
 
   selectedMessage = signal<Customer | null>(null);
       
-          openMessagePopup(customer: Customer) {
-            if (this.activePopoverCustomer() === customer) {
-              this.activePopoverCustomer.set(null); 
-            }
-            this.selectedMessage.set(customer);
-          }
+  openMessagePopup(customer: Customer) {
+    if (this.activePopoverCustomer() === customer) {
+      this.activePopoverCustomer.set(null); 
+    }
+    this.selectedMessage.set(customer);
+    
+    // Reset activities pagination when opening a new popup
+    this.currentActivitiesPage.set(0);
+    
+    // Fetch activities for this customer
+    this.fetchActivities(customer.id);
+  }
+  
+  activities = signal<any[]>([]);
+  
+  fetchActivities(userId: number) {
+    this.loading.set(true);
+    this.http.get<any[]>(`http://localhost:8181/api/v1/activities/${userId}`).subscribe({
+      next: (data) => {
+        this.activities.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load activities:', err);
+        this.activities.set([]);
+        this.loading.set(false);
+      }
+    });
+  }
+  
+  // Update the paginatedActivities computed property
+  paginatedActivities = computed(() => {
+    const start = this.currentActivitiesPage() * this.activitiesPerPage;
+    return this.activities().slice(start, start + this.activitiesPerPage);
+  });
+  
+  // Update the totalActivitiesPages computed property
+  totalActivitiesPages = computed(() => {
+    return Math.ceil(this.activities().length / this.activitiesPerPage);
+  });
   
     closePopup() {
             this.isClosing = true;
@@ -429,15 +463,12 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
       }, 300); 
             this.selectedMessage.set(null);
       }
-  
+
   isClosing = false;
-  
-  
-  
-  
+
       currentActivitiesPage = signal(0);
   activitiesPerPage = 3;
-  
+  /*
   paginatedActivities = computed(() => {
     const start = this.currentActivitiesPage() * this.activitiesPerPage;
     return this.selectedMessage()?.activities.slice(start, start + this.activitiesPerPage) || [];
@@ -446,7 +477,7 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
   totalActivitiesPages = computed(() => {
     return Math.ceil((this.selectedMessage()?.activities.length || 0) / this.activitiesPerPage);
   });
-  
+  */
   nextActivitiesPage() {
     if (this.currentActivitiesPage() < this.totalActivitiesPages() - 1) {
       this.currentActivitiesPage.update(p => p + 1);
@@ -484,5 +515,25 @@ downloadReport(customer: Customer, format: 'csv' | 'pdf') {
         }
       }, 4000);
     }, 100);
+  }
+
+  formatActivityDate(dateString: string): string {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Format as YYYY-MM-DD HH:MM (24-hour format)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${hours}:${minutes}    ${year}-${month}-${day} `;
+    } catch (e) {
+      console.error('Error formatting date', e);
+      return dateString; // Return original if formatting fails
+    }
   }
 }

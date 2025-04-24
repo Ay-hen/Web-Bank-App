@@ -142,48 +142,22 @@
 
         }
 
-
-
-
-
         @case ('tab2') {
             <div class="tab-content">
-            
                 <div class="role-select-container">
                     <label for="roleSelect" class="role-label">Select Role:</label>
                     <div class="select-wrapper2">
-                        <!-- <div class="custom-select" (click)="toggleDropdown()">
-                            <div class="selected-option">
-                                {{ selectedRole() || 'Select role' }}
-                                <span class="arrow">▼</span>
-                            </div>
-                            @if (showDropdown()) {
-                                <div class="options" >
-                                    @for (role of roles; track  role.name) {
-                                        <div class="option" 
-                                            (click)="onRoleSelect(role.value)">
-                                            {{ role.name }}
-                                        </div>
-                                    }
-                                    
-                                    </div>
-                            }
-                            
-                        </div> -->
                         <select id="roleSelect" (change)="selectRole($event)" class="role-dropdown">
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
-                    <div class="select-arrow"></div>
+                        <div class="select-arrow"></div>
                     </div>
                 </div>
             
                 @if (selectedRole() === 'user') {
                     <div class="user-form-container">
                     <h3>Create User</h3>
-            
-                    
-
 
                     <div class="form-group">
 
@@ -425,61 +399,62 @@
 
     @if (selectedMessage()) {
         <div class="message-popup-overlay" (click)="closePopup()">
-            <div class="message-popup" (click)="$event.stopPropagation()">
-                <h3>Activities for {{ selectedMessage()?.name }}</h3>
-                
-                <!-- Activities Table -->
-                <div class="activities-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Activity</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (activity of paginatedActivities(); track activity.id) {
-                                <tr>
-                                    <td>{{ activity.activity }}</td>
-                                    <td>{{ activity.date }}</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Activities Pagination -->
-                @if (selectedMessage()?.activities.length > 3) {
-                    <div class="activities-pagination">
-
-                        <img 
-                            src="icons/arrow_left.svg" 
-                            (click)="prevActivitiesPage()" 
-                            [class.disabled]="currentActivitiesPage() === 0"
-                            [attr.aria-disabled]="!hasPreviousPage()"
-                        />
-                        <span>Page {{ currentActivitiesPage() + 1 }} of {{ totalActivitiesPages() }}</span>
-
-                        <img 
-                            src="icons/arrow_right.svg" 
-                            (click)="nextActivitiesPage()" 
-                            [class.disabled]="currentActivitiesPage() === totalActivitiesPages() - 1"
-                            [attr.aria-disabled]="!hasPreviousPage()"
-                        />
-                        
-                    </div>
-                }
-
-                <button (click)="closePopup()">Close</button>
+          <div class="message-popup" (click)="$event.stopPropagation()">
+            <h3>Activities for {{ selectedMessage()?.name }}</h3>
+            
+            <!-- Activities Table -->
+            <div class="activities-table">
+              @if (loading()) {
+                <div class="loading-indicator">Loading activities...</div>
+              } @else if (activities().length === 0) {
+                <div class="no-activities">No activities found</div>
+              } @else {
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Activity</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (activity of paginatedActivities(); track $index) {
+                        <tr>
+                            <td>{{ activity.activity }}</td>
+                            <td>{{ formatActivityDate(activity.date) }}</td>
+                        </tr>
+                    }
+                  </tbody>
+                </table>
+              }
             </div>
+      
+            <!-- Activities Pagination -->
+            @if (activities().length > activitiesPerPage) {
+              <div class="activities-pagination">
+                <img 
+                  src="icons/arrow_left.svg" 
+                  (click)="prevActivitiesPage()" 
+                  [class.disabled]="currentActivitiesPage() === 0"
+                />
+                <span>Page {{ currentActivitiesPage() + 1 }} of {{ totalActivitiesPages() }}</span>
+                <img 
+                  src="icons/arrow_right.svg" 
+                  (click)="nextActivitiesPage()" 
+                  [class.disabled]="currentActivitiesPage() === totalActivitiesPages() - 1"
+                />
+              </div>
+            }
+      
+            <button (click)="closePopup()">Close</button>
+          </div>
         </div>
-    }
+      }
     @if (notification()) {
         <div class="notification-popup" [class]="notification()?.type">
-          <div class="notification-content">
-            <span class="notification-message">{{ notification()?.message }}</span>
-            <button class="notification-close" (click)="notification.set(null)">×</button>
-          </div>
+            <div class="notification-content">
+                <span class="notification-message">{{ notification()?.message }}</span>
+                <button class="notification-close" (click)="notification.set(null)">×</button>
+            </div>
         </div>
     }
 </div>
