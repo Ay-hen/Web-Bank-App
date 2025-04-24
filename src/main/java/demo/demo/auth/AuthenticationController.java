@@ -1,6 +1,7 @@
 package demo.demo.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,10 +21,14 @@ public class AuthenticationController {
     private AuthenticationService service;
 
     @PostMapping("/create-user")
-    public ResponseEntity<?> register(
-            @RequestBody RegisterRequest request
-            ) {
-        return service.createUser(request);
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        try {
+            return service.createUser(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error processing request: " + e.getMessage());
+        }
     }
 
     @PostMapping("/login")

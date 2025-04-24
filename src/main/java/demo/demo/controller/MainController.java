@@ -168,4 +168,9 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
         return ResponseEntity.ok(userService.getYearlyTransactionGrowthRates());
     }
 
+    @GetMapping("/activities/{id}")
+    public ResponseEntity<?> getUserActivity(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserActivities(id));
+    }
+
 }

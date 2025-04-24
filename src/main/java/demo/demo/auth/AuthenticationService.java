@@ -42,10 +42,11 @@ public class AuthenticationService {
     @Autowired
     private PermissionRepo permissionRepo;
 
-    public ResponseEntity<?> createUser(RegisterRequest request){
-        try{
+    public ResponseEntity<?> createUser(RegisterRequest request) {
+        try {
             if (userRepo.findByUsername(request.getUsername()).isPresent()) {
-                return ResponseEntity.badRequest().body("User already exists");
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                       .body("User already exists");
             }
     
             User user = User.builder()
@@ -73,10 +74,11 @@ public class AuthenticationService {
                 permissionRepo.saveAll(permissionEntities);
                 user.setPermissions(permissionEntities); 
             }
-
-            return ResponseEntity.ok("User created successfully");
     
-        } catch(Exception e){
+            // Return a proper success response with 200 status
+            return ResponseEntity.ok().body("User created successfully");
+    
+        } catch(Exception e) {
             e.printStackTrace(); 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error creating user: " + e.getMessage());

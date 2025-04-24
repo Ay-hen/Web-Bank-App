@@ -40,10 +40,13 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 import demo.demo.auth.PermissionResponse;
+
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
+
 import demo.demo.enums.TransactionStatus;
 import demo.demo.enums.TransactionType;
+
 import demo.demo.model.A2ATransfer;
 import demo.demo.model.Account;
 import demo.demo.model.ActivityTracking;
@@ -59,6 +62,8 @@ import demo.demo.repository.A2ATransferRepo;
 import demo.demo.repository.AccountRepo;
 import demo.demo.repository.ActivityTrackingRepo;
 import demo.demo.repository.CustomerRepo;
+
+import demo.demo.response.ActivityReponse;
 
 @Service
 public class UserService {
@@ -80,6 +85,9 @@ public class UserService {
 
     @Autowired
     private A2ATransferRepo a2aTransferRepo;
+
+    @Autowired
+    private ActivityTrackingRepo activityRepo;
     
     public void assignPermissionsToUser(Long userId, List<Long> permissionIds) {
 
@@ -789,4 +797,15 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         permission.put("name", name);
         permissions.add(permission);
     }
+
+    public List<ActivityReponse> getUserActivities(Long userId) {
+        List<ActivityTracking> activities = activityRepo.findByUserId(userId);
+        return activities.stream()
+                .map(activity -> ActivityReponse.builder()
+                        .activity(activity.getOperationDescription())
+                        .date(activity.getOperationDate())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
+
