@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
+import demo.demo.dto.FeedbackDTO;
 import demo.demo.model.Customer;
 import demo.demo.repository.CustomerRepo;
 import demo.demo.service.UserService;
@@ -171,6 +172,11 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
     @GetMapping("/activities/{id}")
     public ResponseEntity<?> getUserActivity(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserActivities(id));
+    }
+
+    @PostMapping("/send-feedback")
+    public ResponseEntity<?> sendFeedback(@RequestParam Long id, @RequestParam FeedbackDTO feedback) {
+        return userService.createFeedback(id, feedback);
     }
 
 }

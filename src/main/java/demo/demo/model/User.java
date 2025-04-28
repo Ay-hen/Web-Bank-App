@@ -97,11 +97,14 @@ public class User  implements UserDetails {
     @Builder.Default
     private List<Notification> notifications = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Feedback> feedbacks;
+
     @PrePersist
     protected void onCreate() {
         this.isOnline = true;     
         this.isBlocked = false;   
-        //this.creationDate = LocalDateTime.now();
+        //this.creationDate = LocalDateTime.now(); 
     }
 
     protected User(UserBuilder<?, ?> b) {

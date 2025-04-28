@@ -31,21 +31,21 @@ public class Feedback{
     @Column(name = "feedback_id")
     private Long id;
 
-    @Column(name = "feedback", nullable = false, length = 500)
+    @Column(name = "feedback", nullable = false)
     private String message;
 
-    @Column(name = "feedback_category", nullable = false, length = 50)
+    @Column(name = "feedback_category", length = 50)
     private String category;
 
-    @Column(name = "is_read", nullable = false)
+    @Column(name = "is_read", nullable = false, columnDefinition = "boolean default false")
     private boolean isRead;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Long userId;
+    @JoinColumn(name = "user_id")
+    private User user; 
 
     @Column(name = "status", nullable = false, length = 10)
-    private String status;
+    private String status; //Rplied or Not Rplied etc..
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;

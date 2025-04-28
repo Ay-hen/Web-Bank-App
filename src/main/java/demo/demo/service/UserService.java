@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.lowagie.text.Document;
@@ -43,14 +44,18 @@ import demo.demo.auth.PermissionResponse;
 
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
+import demo.demo.dto.FeedbackDTO;
 
 import demo.demo.enums.TransactionStatus;
 import demo.demo.enums.TransactionType;
+
+import demo.demo.response.FeedbackReponse;
 
 import demo.demo.model.A2ATransfer;
 import demo.demo.model.Account;
 import demo.demo.model.ActivityTracking;
 import demo.demo.model.Customer;
+import demo.demo.model.Feedback;
 import demo.demo.model.Permission;
 import demo.demo.model.QRCode;
 import demo.demo.model.User;
@@ -62,7 +67,7 @@ import demo.demo.repository.A2ATransferRepo;
 import demo.demo.repository.AccountRepo;
 import demo.demo.repository.ActivityTrackingRepo;
 import demo.demo.repository.CustomerRepo;
-
+import demo.demo.repository.FeedbackRepo;
 import demo.demo.response.ActivityReponse;
 
 @Service
@@ -88,6 +93,9 @@ public class UserService {
 
     @Autowired
     private ActivityTrackingRepo activityRepo;
+
+    @Autowired
+    private FeedbackRepo feedbackRepo;
     
     public void assignPermissionsToUser(Long userId, List<Long> permissionIds) {
 
@@ -807,5 +815,58 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                         .build())
                 .collect(Collectors.toList());
     }
-}
 
+    public ResponseEntity<String> createFeedback(Long userId, FeedbackDTO feedback) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        Feedback fb = Feedback.builder()
+                .message(feedback.getMessage())
+                .category(feedback.getCategory())
+                .isRead(feedback.isRead())
+                .status(feedback.getStatus())
+                .user(user) 
+                .date(LocalDateTime.now())
+                .build();
+
+        if(user.getFeedbacks() == null) {
+            user.setFeedbacks(new ArrayList<>());
+        }
+
+        user.getFeedbacks().add(fb);
+        
+        userRepo.save(user);
+
+        return ResponseEntity.ok("Feedback Sent successfully");
+    }
+
+    public List<FeedbackDTO> getUserFeedbacks(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        return user.getFeedbacks().stream()
+                .map(feedback -> FeedbackDTO.builder()
+                        .message(feedback.getMessage())
+                        .category(feedback.getCategory())
+                        .isRead(feedback.isRead())
+                        .status(feedback.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<FeedbackReponse> getAllFeedbacks() {
+        List<Feedback> feedbacks = feedbackRepo.findAll();
+        return feedbacks.stream()
+                .map(feedback -> FeedbackReponse.builder()
+                        .username(feedback.getUser().getName())
+                        .email(feedback.getUser().getEmail())
+                        .date(feedback.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")))
+                        .name(feedback.getUser().getName())
+                        .message(feedback.getMessage())
+                        .category(feedback.getCategory())
+                        .isRead(feedback.isRead())
+                        .status(feedback.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+}
