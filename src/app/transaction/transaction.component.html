@@ -49,6 +49,7 @@
                 <div>Sender Name</div>
                 <div class="amount">Amount</div>
                 <div>Recepient Name</div>
+                <div>Type</div>
                 <div class="creation-date">Creation Date</div>
                 <div class="status">Status</div>
             </div>
@@ -59,6 +60,7 @@
                         <div>{{ transaction.senderName }}</div>
                         <div class="amount">{{ transaction.amount }}</div>
                         <div>{{ transaction.recepientName }}</div>
+                        <div>{{ transaction.type}}</div>
                         <div>{{ transaction.creationDate }}</div>
 
                         @if(transaction.status === 'pending') {
@@ -74,6 +76,7 @@
                                 {{ transaction.status }}
                             </div>
                         } 
+                        
                     </div>
                 }
             </div>
@@ -103,14 +106,32 @@
         @case ('tab2') {
             <div class="generate-feedback-container">
                 <h2>Generate User Transactions</h2>
-
-                <input
-                    class="username-input"
-                    type="text"
-                    placeholder="Enter username"
-                    [value]="username()"
-                    (input)="username.set($any($event).target.value)"
-                />
+            
+                <div class="username-autocomplete">
+                    <input
+                        class="username-input"
+                        type="text"
+                        placeholder="Enter username"
+                        [value]="username()"
+                        (input)="onUsernameInput($event)"
+                        (focus)="username() && fetchUsers(username())"
+                        (blur)="handleBlur()"
+                    />
+                
+                    @if (showUserList()) {
+                        <ul class="user-list">
+                            @for (user of filteredUsers(); track user.id) {
+                                <li (mousedown)="selectUser(user)">
+                                    {{ user.username }} - {{ user.name }}
+                                </li>
+                            }
+                        </ul>
+                    }
+                    
+                    @if (noUsersFound()) {
+                        <div class="no-users">No users found</div>
+                    }
+                </div>
                 <div class="download-buttons">
                     <div class="hover-text-wrapper"
                         (mouseenter)="showTooltip()"
