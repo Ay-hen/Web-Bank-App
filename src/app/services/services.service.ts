@@ -248,5 +248,9 @@ downloadFile(url: string): Observable<Blob> {
   getYearlyTransactionGrowthRate() {
     return this.http.get<any[]>('http://localhost:8181/api/v1/transaction/growth-rate/yearly');
   }
+  
+  getAllTransaction() {
+    return this.http.get<any[]>('http://localhost:8181/api/v1/transactions');
+  }
 
 }

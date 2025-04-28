@@ -9,6 +9,7 @@ import { NotificationComponent } from './notification/notification.component';
 import { AdminManagementComponent } from './admin-management/admin-management.component';
 import { authGuard } from './guard/auth.guard';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
+import { UserDashboardComponent } from './user-dashboard/user-dashboard.component';
 
 export const routes: Routes = [
     {
@@ -59,6 +60,13 @@ export const routes: Routes = [
         component: AdminManagementComponent,
         canActivate: [authGuard],
         data: { role: 'ADMIN', permission: 'MANAGE_ADMIN' }
+    },
+
+    {
+        path: 'user-dashboard',
+        component : UserDashboardComponent,
+        canActivate: [authGuard],
+        data: { role: 'USER'}
     },
 
     {

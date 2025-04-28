@@ -9,25 +9,15 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterModule } fro
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
-
-
 export class NavbarComponent implements OnInit {
   activeSection = '';
-
   private viewportScroller = inject(ViewportScroller);
   private router = inject(Router);
 
-  constructor(
-    //private viewportScroller: ViewportScroller,
-    //private router: Router
-  ) {}
-
-
   ngOnInit() {
-
     if (this.router.url === '/' || this.router.url === '/home') {
       this.activeSection = 'home';
-    }else{
+    } else {
       this.activeSection = '';
     }
 
@@ -61,6 +51,8 @@ export class NavbarComponent implements OnInit {
       } else {
         this.activeSection = 'home';
       }
+    } else if (url === '/login') {
+      this.activeSection = '';
     }
   }
 
@@ -71,13 +63,11 @@ export class NavbarComponent implements OnInit {
   handleNavClick(event: Event, sectionId: string) {
     event.preventDefault();
     
-    if (this.router.url === '/' || this.router.url === `/home` ) {
+    if (this.router.url === '/' || this.router.url === `/home`) {
       this.scrollToSection(sectionId);
     } else {
-      // Navigate to home page with fragment
       this.activeSection = sectionId;
       this.router.navigate(['/'], { fragment: sectionId }).then(() => {
-        // Wait for Angular to finish rendering before scrolling
         setTimeout(() => {
           this.scrollToSection(sectionId);
         }, 100);
@@ -99,6 +89,11 @@ export class NavbarComponent implements OnInit {
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
+    // Don't update active section if we're on the login page
+    if (this.router.url === '/login') {
+      return;
+    }
+
     const sections = ['home', 'service', 'process', 'about'];
     let currentSection = '';
     sections.forEach(sectionId => {
@@ -110,7 +105,11 @@ export class NavbarComponent implements OnInit {
         }
       }
     });
-    this.updateActiveLink(currentSection);
+    
+    if (currentSection) {
+      this.activeSection = currentSection;
+      this.updateActiveLink(currentSection);
+    }
   }
 
   updateActiveLink(sectionId: string) {

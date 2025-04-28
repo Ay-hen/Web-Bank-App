@@ -1,1 +1,36 @@
-<p>user-dashboard works!</p>
+<nav class="navbar">
+    <div class="navbar-header">
+      <h2 class="app-name">Dashboard</h2>
+    </div>
+  
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a
+          routerLink="/userfeedback"
+          routerLinkActive="active"
+          class="nav-link">
+          <img src="icons/feedback.svg" class="nav-icon" />
+          <span class="nav-label">Feedback</span>
+        </a>
+      </li>
+  
+      <li class="nav-item">
+        <a
+          routerLink="/settings"
+          routerLinkActive="active"
+          class="nav-link">
+          <img src="icons/setting.svg" class="nav-icon" />
+          <span class="nav-label">Settings</span>
+        </a>
+      </li>
+  
+      <!-- Logout -->
+      <li class="nav-item">
+        <a class="nav-link" (click)="logout()">
+          <img src="icons/logout.svg" class="nav-icon logout-icon" />
+          <span class="nav-label">Logout</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  

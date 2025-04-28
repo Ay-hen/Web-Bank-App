@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { ServicesService } from '../services/services.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -8,5 +10,13 @@ import { Component } from '@angular/core';
   styleUrl: './user-dashboard.component.scss'
 })
 export class UserDashboardComponent {
+  private auth = inject(ServicesService);
+  private router = inject(Router);
+
+
+  logout() {
+    localStorage.clear();
+    this.router.navigate(['/login']);
+  }
 
 }
