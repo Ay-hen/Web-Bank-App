@@ -41,8 +41,17 @@ public class MainController {
         return ResponseEntity.ok(userService.getPermissions());
     }
 
-    @GetMapping("/customers")
+    @GetMapping("/all/customers")
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
+        return ResponseEntity.ok(userService.getAllCustomerResponses());
+    }
+
+    @GetMapping("/customers")
+    public ResponseEntity<List<CustomerResponse>> searchCustomers(
+            @RequestParam(required = false) String search) {
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(userService.searchCustomers(search));
+        }
         return ResponseEntity.ok(userService.getAllCustomerResponses());
     }
 
@@ -52,22 +61,22 @@ public class MainController {
     }
 
     @GetMapping("/report/pdf")
-public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
-    Customer customer = customerRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
+    public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
+        Customer customer = customerRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-    byte[] pdfBytes = userService.generateCustomerPdfReport(id);
+        byte[] pdfBytes = userService.generateCustomerPdfReport(id);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_PDF);
-    headers.setContentDisposition(
-        ContentDisposition.attachment()
-                .filename(customer.getName().replaceAll(" ", "_") + "_report.pdf")
-                .build()
-    );
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                    .filename(customer.getName().replaceAll(" ", "_") + "_report.pdf")
+                    .build()
+        );
 
-    return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-}
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
 
 
     @GetMapping("/report/csv")
@@ -80,6 +89,45 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
 
         return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
     }
+
+    @GetMapping("/customers/{username}/transactions/pdf")
+    public ResponseEntity<byte[]> downloadCustomerTransactionsPDF(@PathVariable String username) {
+        Customer customer = customerRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        byte[] pdfBytes = userService.generateCustomerTransactionsPdfReport(customer.getId());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                    .filename(customer.getName().replaceAll(" ", "_").toLowerCase() + "_report.pdf")
+                    .build()
+        );
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/customers/{username}/transactions/csv")
+    public ResponseEntity<byte[]> downloadCustomerTransactionsCSV(@PathVariable String username) {
+        Customer customer = customerRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        byte[] csvBytes = userService.generateCustomerTransactionsCsvReport(customer.getId());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                    .filename(customer.getName().replaceAll(" ", "_").toLowerCase() + "_report.csv")
+                    .build()
+        );
+
+        return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
+    }
+
+
 
     @GetMapping("/transactions")
     public ResponseEntity<List<Map<String, Object>>> getAllTransactions() {
@@ -147,6 +195,16 @@ public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {
     @GetMapping("/stats/customers-years")
     public ResponseEntity<?> customersRegisterYears() {
         return ResponseEntity.ok(userService.getCustomerRegistrationsByYear());
+    }
+    
+    @GetMapping("/stats/users-months")
+    public ResponseEntity<?> usersRegister() {
+        return ResponseEntity.ok(userService.getUserRegistrationsLast6Months());
+    }
+
+    @GetMapping("/stats/users-years")
+    public ResponseEntity<?> usersRegisterYears() {
+        return ResponseEntity.ok(userService.getUserRegistrationsByYear());
     }
 
     @GetMapping("/transactions/monthly")

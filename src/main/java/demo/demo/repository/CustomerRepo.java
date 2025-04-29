@@ -2,6 +2,7 @@ package demo.demo.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,5 +11,6 @@ import demo.demo.model.Customer;
 @Repository
 public interface CustomerRepo extends JpaRepository<Customer, Long>{
         List<Customer> findByCreationDateAfter(LocalDateTime date);
-        
+        List<Customer> findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(String name, String username);
+        Optional<Customer> findByUsername(String username);
 }

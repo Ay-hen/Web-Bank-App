@@ -59,10 +59,8 @@ public class AuthenticationService {
                     .role(request.getRole().toUpperCase())
                     .build();
     
-            // Save the user first to generate an ID
             userRepo.save(user);
-    
-            // Assign permissions if role is admin
+
             if ("ADMIN".equalsIgnoreCase(request.getRole().toUpperCase()) && request.getPermissions() != null) {
                 List<Permission> permissionEntities = request.getPermissions().stream()
                     .map(p -> Permission.builder()

@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class CustomerResponse {
     private Long id;
     private String name;
+    private String username;
     private String email;
     private String phoneNumber;
     private BigDecimal amount;

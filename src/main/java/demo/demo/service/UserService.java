@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -169,6 +170,29 @@ public class UserService {
                     .status(account != null ? account.getAccountStatus() : "N/A")
                     .build();
         }).collect(Collectors.toList());
+    }
+
+    public List<CustomerResponse> searchCustomers(String search) {
+        // find any customer whose name **or** username contains the search string (case-insensitive)
+        List<Customer> customers = customerRepo
+            .findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(search, search);
+        return customers.stream()
+            .map(this::toResponse)
+            .collect(Collectors.toList());
+    }
+
+    private CustomerResponse toResponse(Customer customer) {
+        Account account = customer.getAccount();
+        return CustomerResponse.builder()
+                .id(customer.getId())
+                .name(customer.getName())
+                .username(customer.getUsername())
+                .email(customer.getEmail())
+                .phoneNumber(customer.getPhoneNumber())
+                .amount(account != null ? account.getAmount() : BigDecimal.ZERO)
+                .createdDate(customer.getCreationDate())
+                .status(account != null ? account.getAccountStatus() : "N/A")
+                .build();
     }
 
     public Map<String, Object> generateCustomerReport(Long customerId) {
@@ -322,6 +346,106 @@ public class UserService {
         return writer.toString().getBytes(StandardCharsets.UTF_8);
     }
 
+
+
+    public byte[] generateCustomerTransactionsPdfReport(Long id) {
+        Customer customer = customerRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+    
+        Account account = customer.getAccount();        
+    
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document document = new Document();
+    
+        try {
+            PdfWriter.getInstance(document, baos);
+            document.open();
+    
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            Font monoFont = FontFactory.getFont(FontFactory.COURIER, 12);  // Use monospaced font for alignment
+    
+            document.add(new Paragraph(customer.getName() + " Transactions Report", titleFont));
+            document.add(new Paragraph(" "));
+    
+            // Align fields using fixed-width formatting
+            document.add(new Paragraph(String.format("%-12s: %s", "Name", customer.getName()), monoFont));
+            document.add(new Paragraph(String.format("%-12s: %s", "Email", customer.getEmail()), monoFont));
+            document.add(new Paragraph(String.format("%-12s: %s", "CIN", customer.getCin()), monoFont));
+            document.add(new Paragraph(String.format("%-12s: %s", "Phone", customer.getPhoneNumber()), monoFont));
+    
+            if (account != null) {
+                document.add(new Paragraph(String.format("%-12s: %s", "RIB", account.getRib()), monoFont));
+                document.add(new Paragraph(String.format("%-12s: %s", "Amount", account.getAmount()), monoFont));
+            }
+    
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Transactions:", titleFont));
+            document.add(new Paragraph(" "));
+    
+            List<Map<String, Object>> transactions = getUserTransactions(id);
+    
+            if (transactions.isEmpty()) {
+                document.add(new Paragraph("No transactions found.", monoFont));
+            } else {
+                for (Map<String, Object> tx : transactions) {
+                    String line = String.format(
+                        "%-22s | %-10s | %-8s | %s",
+                        tx.getOrDefault("direction", "N/A"),
+                        tx.getOrDefault("amount", "0"),
+                        tx.getOrDefault("type", "N/A"),
+                        tx.getOrDefault("date", "Unknown")
+                    );
+                    document.add(new Paragraph(line, monoFont));
+                }
+            }
+    
+            document.close();
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating PDF", e);
+        }
+    
+        return baos.toByteArray();
+    }
+    
+    
+
+    public byte[] generateCustomerTransactionsCsvReport(Long id) {
+        Customer customer = customerRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+    
+        Account account = customer.getAccount();
+        List<Map<String, Object>> transactions = getUserTransactions(id);
+    
+        StringBuilder sb = new StringBuilder();
+    
+        // Header
+        sb.append("Customer Name,Email,CIN,Phone,RIB,Amount\n");
+        sb.append(String.format("%s,%s,%s,%s,%s,%s\n",
+                customer.getName(),
+                customer.getEmail(),
+                customer.getCin(),
+                customer.getPhoneNumber(),
+                account != null ? account.getRib() : "N/A",
+                account != null ? account.getAmount() : "0"
+        ));
+    
+        sb.append("\nTransaction Details\n");
+        sb.append("Direction,Amount,Type,Date\n");
+    
+        for (Map<String, Object> tx : transactions) {
+            sb.append(String.format("%s,%s,%s,%s\n",
+                    tx.getOrDefault("direction", "N/A"),
+                    tx.getOrDefault("amount", "0"),
+                    tx.getOrDefault("type", "N/A"),
+                    tx.getOrDefault("date", "Unknown")
+            ));
+        }
+    
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+    
+
+
     public List<Map<String, Object>> getAllTransactions() {
         List<Map<String, Object>> transactions = new ArrayList<>();
 
@@ -376,24 +500,26 @@ public class UserService {
         for (A2ATransfer transfer : a2aTransfers) {
             Account debit = transfer.getAccountDebit();
             Account credit = transfer.getAccountCredit();
-    
-            // skip invalid transfer
-            if (debit == null || credit == null) continue;
-    
+        
+            // Skip transfers not related to the user's account
+            if (!Objects.equals(debit, account) && !Objects.equals(credit, account)) continue;
+        
             Map<String, Object> tx = new HashMap<>();
             tx.put("amount", transfer.getAmount());
             tx.put("status", transfer.getTransactionStatus().name());
             tx.put("type", transfer.getTransactionType().name());
-            tx.put("date", transfer.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
-    
-            if (debit.equals(account)) {
+            tx.put("date", transfer.getDateTransaction().format(formatter));
+        
+            if (debit == null && credit.equals(account) && transfer.getTransactionType() == TransactionType.DEPOSIT) {
+                tx.put("direction", "Deposit");
+            } else if (debit.equals(account)) {
                 tx.put("direction", "Sent to " + credit.getCustomer().getName());
             } else if (credit.equals(account)) {
                 tx.put("direction", "Received from " + debit.getCustomer().getName());
             } else {
-                continue; // not related to this user's account
+                continue; // Not relevant
             }
-    
+        
             transactions.add(tx);
         }
     
@@ -670,6 +796,57 @@ public class UserService {
         return result;
     }
 
+    // For Users
+    public List<Map<String, Object>> getUserRegistrationsLast6Months() {
+        LocalDate now = LocalDate.now();
+        LocalDate sixMonthsAgo = now.minusMonths(5).withDayOfMonth(1); // Start from beginning of the month
+    
+        List<User> users = userRepo.findByCreationDateAfter(sixMonthsAgo.atStartOfDay());
+    
+        Map<YearMonth, Long> countsByMonth = users.stream()
+            .filter(u -> u.getCreationDate() != null)
+            .collect(Collectors.groupingBy(
+                u -> YearMonth.from(u.getCreationDate()),
+                Collectors.counting()
+            ));
+    
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            YearMonth month = YearMonth.from(now.minusMonths(5 - i));
+            long count = countsByMonth.getOrDefault(month, 0L);
+    
+            Map<String, Object> monthData = new HashMap<>();
+            monthData.put("month", month.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+            monthData.put("count", count);
+            result.add(monthData);
+        }
+    
+        return result;
+    }
+    
+    public List<Map<String, Object>> getUserRegistrationsByYear() {
+        List<User> allUsers = userRepo.findAll();
+    
+        Map<Integer, Long> countsByYear = allUsers.stream()
+            .filter(u -> u.getCreationDate() != null)
+            .collect(Collectors.groupingBy(
+                u -> u.getCreationDate().getYear(),
+                TreeMap::new, // Sorted by year
+                Collectors.counting()
+            ));
+    
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<Integer, Long> entry : countsByYear.entrySet()) {
+            Map<String, Object> yearData = new HashMap<>();
+            yearData.put("year", entry.getKey());
+            yearData.put("count", entry.getValue());
+            result.add(yearData);
+        }
+    
+        return result;
+    }
+    //end
+
     @Autowired
     private A2ATransferRepo a2aRepo;
     
@@ -868,5 +1045,54 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                         .status(feedback.getStatus())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public ResponseEntity<String> updateFeedbackStatus(Long feedbackId, String status) {
+        Feedback feedback = feedbackRepo.findById(feedbackId)
+                .orElseThrow(() -> new RuntimeException("Feedback not found"));
+        
+        feedback.setStatus(status);
+        feedbackRepo.save(feedback);
+        
+        return ResponseEntity.ok("Feedback status updated successfully");
+    }
+
+    public ResponseEntity<List<Map<String,Object>>> getAllTransaction() {
+        List<A2ATransfer> a2aTransfers = a2aRepo.findAll();
+        List<QRCode> qrCodes = qrCodeRepo.findAll();
+
+        List<Map<String, Object>> transactions = new ArrayList<>();
+
+        for (A2ATransfer transfer : a2aTransfers) {
+            Map<String, Object> tx = new HashMap<>();
+            if (transfer.getAccountDebit() != null && transfer.getAccountDebit().getCustomer() != null) {
+                tx.put("sender", transfer.getAccountDebit().getCustomer().getName());
+            } else {
+                tx.put("sender", "N/A");
+            }
+            if (transfer.getAccountCredit() != null && transfer.getAccountCredit().getCustomer() != null) {
+                tx.put("recipient", transfer.getAccountCredit().getCustomer().getName());
+            } else {
+                tx.put("recipient", "N/A");
+            }
+            tx.put("amount", transfer.getAmount());
+            tx.put("status", transfer.getTransactionStatus().name());
+            tx.put("type", transfer.getTransactionType().name());
+            tx.put("date", transfer.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+            transactions.add(tx);
+        }
+
+        for (QRCode qr : qrCodes) {
+            Map<String, Object> tx = new HashMap<>();
+            tx.put("sender", qr.getSender() != null ? qr.getSender().getCustomer().getName() : "N/A");
+            tx.put("recipient", qr.getReceiver().getCustomer().getName());
+            tx.put("amount", qr.getAmount());
+            tx.put("status", qr.getTransactionStatus().name());
+            tx.put("type", qr.getTransactionType().name());
+            tx.put("date", qr.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+            transactions.add(tx);
+        }
+
+        return ResponseEntity.ok(transactions);
     }
 }
