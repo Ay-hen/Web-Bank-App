@@ -55,10 +55,6 @@ public class MainController {
         return ResponseEntity.ok(userService.getAllCustomerResponses());
     }
 
-    @GetMapping("/report")
-    public ResponseEntity<?> getReport(@RequestParam Long id) {
-        return ResponseEntity.ok(userService.generateCustomerReport(id));
-    }
 
     @GetMapping("/report/pdf")
     public ResponseEntity<byte[]> downloadPdfReport(@RequestParam Long id) {

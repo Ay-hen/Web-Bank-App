@@ -501,28 +501,35 @@ public class UserService {
             Account debit = transfer.getAccountDebit();
             Account credit = transfer.getAccountCredit();
         
-            // Skip transfers not related to the user's account
-            if (!Objects.equals(debit, account) && !Objects.equals(credit, account)) continue;
-        
             Map<String, Object> tx = new HashMap<>();
             tx.put("amount", transfer.getAmount());
             tx.put("status", transfer.getTransactionStatus().name());
             tx.put("type", transfer.getTransactionType().name());
-            tx.put("date", transfer.getDateTransaction().format(formatter));
+            tx.put("date", transfer.getDateTransaction().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
         
-            if (debit == null && credit.equals(account) && transfer.getTransactionType() == TransactionType.DEPOSIT) {
+            // DEPOSIT case (debit is null, credit is current user)
+            if (debit == null && credit != null && credit.equals(account) && transfer.getTransactionType() == TransactionType.DEPOSIT) {
                 tx.put("direction", "Deposit");
-            } else if (debit.equals(account)) {
+                transactions.add(tx);
+                continue;
+            }
+        
+            // Skip if both accounts are null or unrelated
+            if ((debit == null || credit == null) ||
+                (!account.equals(debit) && !account.equals(credit))) {
+                continue;
+            }
+        
+            if (account.equals(debit)) {
                 tx.put("direction", "Sent to " + credit.getCustomer().getName());
-            } else if (credit.equals(account)) {
+            } else if (account.equals(credit)) {
                 tx.put("direction", "Received from " + debit.getCustomer().getName());
-            } else {
-                continue; // Not relevant
             }
         
             transactions.add(tx);
         }
-    
+
+
         List<QRCode> qrCodes = qrCodeRepo.findAll();
         for (QRCode qr : qrCodes) {
             Account sender = qr.getSender();
