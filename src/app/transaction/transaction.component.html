@@ -182,8 +182,29 @@
             </div>
         }
 
+        
+    
+
+
         @default {
             <h2>Select a tab to view content</h2>
         }
+    }
+
+    <!-- Download Progress Modal -->
+    @if(isDownloading().csv || isDownloading().pdf){
+        <div class="download-popup" >
+            <div class="popup-content">
+            <!-- <img src="download_cloud.svg" alt="" class="popup-icon" /> -->
+            <h3>Downloading {{ isDownloading().pdf ? 'PDF' : 'CSV' }}...</h3>
+            <div class="progress-bar">
+                <div 
+                class="progress-fill"
+                [style.width.%]="isDownloading().pdf ? downloadProgress().pdf : downloadProgress().csv">
+                </div>
+            </div>
+            <p>{{ isDownloading().pdf ? downloadProgress().pdf : downloadProgress().csv }}%</p>
+            </div>
+        </div>
     }
 </div>

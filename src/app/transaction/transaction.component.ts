@@ -2,7 +2,7 @@ import { AfterViewInit, Component, computed, ElementRef, OnInit, signal, ViewChi
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import jsPDF from 'jspdf';
 import { Chart, registerables } from 'chart.js';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
 
 Chart.register(...registerables);
 
@@ -208,53 +208,50 @@ export class TransactionComponent implements OnInit, AfterViewInit {
     return [headers.join(','), ...rows].join('\n');
   }
 
+  isDownloading = signal<{ csv: boolean, pdf: boolean }>({ csv: false, pdf: false });
+  downloadProgress = signal<{ csv: number, pdf: number }>({ csv: 0, pdf: 0 });
+
   downloadTransactions(type: 'csv' | 'pdf', username: string) {
-    const data = this.transactions().filter(f =>
-      f.senderName.toLowerCase() === username.toLowerCase() ||
-      f.recepientName.toLowerCase() === username.toLowerCase()
-    );
+    // Set loading state
+    this.isDownloading.update(state => ({ ...state, [type]: true }));
+    this.downloadProgress.update(state => ({ ...state, [type]: 0 }));
 
-    if (data.length === 0) {
-      alert('No transactions found for this user');
-      return;
-    }
+    const apiUrl = `http://localhost:8181/api/v1/customers/${username}/transactions/${type}`;
 
-    if (type === 'csv') {
-      const csv = this.convertToCSV(data);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${username}_transactions.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } else if (type === 'pdf') {
-      const doc = new jsPDF();
-      doc.setFontSize(12);
-      doc.text(`Transactions for ${username}`, 10, 10);
+    this.http.get(apiUrl, {
+      responseType: 'blob',
+      reportProgress: true,
+      observe: 'events'
+    }).subscribe({
+      next: (event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.DownloadProgress) {
+          const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+          this.downloadProgress.update(state => ({ ...state, [type]: progress }));
+        } else if (event instanceof HttpResponse) {
+          const blob = event.body;
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${username.replace(/\s+/g, '_')}_transactions.${type}`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
 
-      let y = 20;
-      data.forEach((f, index) => {
-        doc.text(`${index + 1}. Sender: ${f.senderName}`, 10, y);
-        y += 8;
-        doc.text(`   Recipient: ${f.recepientName}`, 10, y);
-        y += 8;
-        doc.text(`   Amount: $${f.amount}`, 10, y);
-        y += 8;
-        doc.text(`   Date: ${f.creationDate}`, 10, y);
-        y += 8;
-        doc.text(`   Status: ${f.status}`, 10, y);
-        y += 12;
-
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
+          // Reset states
+          this.isDownloading.update(state => ({ ...state, [type]: false }));
+          this.downloadProgress.update(state => ({ ...state, [type]: 0 }));
         }
-      });
-
-      doc.save(`${username}_transactions.pdf`);
-    }
+      },
+      error: (error) => {
+      
+        console.error('Download error:', error);
+        this.isDownloading.update(state => ({ ...state, [type]: false }));
+        this.downloadProgress.update(state => ({ ...state, [type]: 0 }));
+      }
+    });
   }
+
 
   showTooltip() {
     this.tooltipVisible.set(true);
