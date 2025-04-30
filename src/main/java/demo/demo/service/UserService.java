@@ -1000,15 +1000,15 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                 .collect(Collectors.toList());
     }
 
-    public ResponseEntity<String> createFeedback(Long userId, FeedbackDTO feedback) {
-        User user = userRepo.findById(userId)
+    public ResponseEntity<?> createFeedback(String username, FeedbackDTO feedback) {
+        User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Feedback fb = Feedback.builder()
                 .message(feedback.getMessage())
                 .category(feedback.getCategory())
-                .isRead(feedback.isRead())
-                .status(feedback.getStatus())
+                .status("pending")
+                .isRead(false)
                 .user(user) 
                 .date(LocalDateTime.now())
                 .build();
@@ -1021,7 +1021,8 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         
         userRepo.save(user);
 
-        return ResponseEntity.ok("Feedback Sent successfully");
+        return ResponseEntity.ok(Collections.singletonMap("message", "Feedback saved successfully"));
+
     }
 
     public List<FeedbackDTO> getUserFeedbacks(Long userId) {

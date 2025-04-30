@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -229,8 +230,8 @@ public class MainController {
     }
 
     @PostMapping("/send-feedback")
-    public ResponseEntity<?> sendFeedback(@RequestParam Long id, @RequestParam FeedbackDTO feedback) {
-        return userService.createFeedback(id, feedback);
+    public ResponseEntity<?> sendFeedback(@RequestParam String username, @RequestBody FeedbackDTO feedback) {
+        return userService.createFeedback(username, feedback);
     }
 
 }
