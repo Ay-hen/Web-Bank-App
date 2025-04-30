@@ -1,0 +1,45 @@
+<app-user-dashboard></app-user-dashboard>
+
+<div class="container">
+    <div class="buttons">
+        <button 
+            (click)="selectedTab = 'tab1'" 
+            [class.active]="selectedTab === 'tab1'" class="head-btn">Send Feedback</button>
+        <button 
+            (click)="selectedTab = 'tab2'" 
+            [class.active]="selectedTab === 'tab2'" class="head-btn">
+            View My Feedbacks
+        </button>
+    </div>
+
+    @switch (selectedTab) {
+        @case ('tab1') {
+            <div class="form">
+                <h2>Send Feedback</h2>
+                <div class="feedback-form-container">   
+                    <form [formGroup]="feedbackForm" (submit)="submitFeedback()">
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <input id="category" type="text" formControlName="category" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" formControlName="message" rows="5"></textarea>
+                        </div>
+
+                        <div class="btn">
+                            <button type="submit">Submit</button>
+                        </div>
+                    </form>
+                </div>
+                
+                
+            </div>
+        }
+
+        @default{
+            <h2>Ok hhhh</h2>
+        }
+    }
+</div>

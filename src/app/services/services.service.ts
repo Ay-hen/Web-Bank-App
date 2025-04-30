@@ -71,8 +71,10 @@ export class ServicesService {
       
           if (role === "ADMIN") {
             this.router.navigate(['dashboard']);
-          } else {
-            this.router.navigate(['/user-dashboard']);
+          } else if(role === "USER") {
+            this.router.navigate(['/user-feedback']);
+          }else{
+            this.router.navigate(['/unauthorized']);
           }
       
           return body;
@@ -253,4 +255,19 @@ downloadFile(url: string): Observable<Blob> {
     return this.http.get<any[]>('http://localhost:8181/api/v1/transactions');
   }
 
+  getUsernameFromToken2(token: string): string | null {
+    if (!token) return null;
+    
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+  
+    try {
+      const decodedPayload = atob(payload);
+      const parsed = JSON.parse(decodedPayload);
+      return parsed.sub || parsed.username || null; // Adjust based on your token structure
+    } catch (e) {
+      console.error('Invalid token:', e);
+      return null;
+    }
+  }
 }

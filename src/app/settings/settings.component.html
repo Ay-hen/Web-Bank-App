@@ -1,1 +1,5 @@
-<p>settings works!</p>
+@if(role == "USER"){
+    <app-user-dashboard></app-user-dashboard>
+} @else {
+    <app-dashboard-navbar></app-dashboard-navbar>
+}
