@@ -12,17 +12,15 @@ import { HttpClient } from '@angular/common/http';
   styleUrl: './user-feedback.component.scss'
 })
 export class UserFeedbackComponent implements OnInit {
-  selectedTab : string = 'tab1'; 
+  selectedTab: string = 'tab1'; 
+  feedbackForm: FormGroup;
 
   service = inject(ServicesService);
 
-  username = this.service.getUsernameFromToken(); 
+  username = this.service.getUsernameFromToken();
 
-  ngOnInit(): void {
-    
-  }
-
-  feedbackForm: FormGroup;
+  feedbackSent: boolean = false; 
+  errorMessage: string | null = null; // Optional: handle error
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.feedbackForm = this.fb.group({
@@ -30,16 +28,30 @@ export class UserFeedbackComponent implements OnInit {
       message: ['', Validators.required]
     });
   }
-  
+
+  ngOnInit(): void {}
+
   submitFeedback() {
-    
+    this.feedbackSent = false;
+    this.errorMessage = null;
+  
     if (this.feedbackForm.valid && this.username) {
-      this.http.post(`http://localhost:8181/api/v1/send-feedback?username=${this.username}`, 
-        this.feedbackForm.value
+      this.http.post(
+        `http://localhost:8181/api/v1/send-feedback?username=${this.username}`, 
+        this.feedbackForm.value, 
+        { responseType: 'text' } 
       ).subscribe({
-        next: () => alert('Feedback sent successfully'),
-        error: (err) => alert('Error: ' + err.message)
+        next: () => {
+          this.feedbackSent = true;
+          this.feedbackForm.reset();
+          setTimeout(() => this.feedbackSent = false, 5000);
+        },
+        error: (err) => {
+          this.errorMessage = err.message;
+          setTimeout(() => this.errorMessage = null, 5000); 
+        }
       });
     }
   }
+  
 }
