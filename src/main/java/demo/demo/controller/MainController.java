@@ -24,6 +24,7 @@ import demo.demo.dto.CustomerResponse;
 import demo.demo.dto.FeedbackDTO;
 import demo.demo.model.Customer;
 import demo.demo.repository.CustomerRepo;
+import demo.demo.response.FeedbackReponse;
 import demo.demo.service.UserService;
 
 @RestController
@@ -232,6 +233,11 @@ public class MainController {
     @PostMapping("/send-feedback")
     public ResponseEntity<?> sendFeedback(@RequestParam String username, @RequestBody FeedbackDTO feedback) {
         return userService.createFeedback(username, feedback);
+    }
+
+    @GetMapping("/feedbacks")
+    public ResponseEntity<List<FeedbackReponse>> getAllFeedbacks() {
+        return ResponseEntity.ok(userService.getAllFeedbacks());
     }
 
 }

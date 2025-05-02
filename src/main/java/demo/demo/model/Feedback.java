@@ -49,4 +49,8 @@ public class Feedback{
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
+
+    @Column(name = "answer")
+    private String answer; 
+
 }

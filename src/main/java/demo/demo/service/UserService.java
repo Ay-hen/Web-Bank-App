@@ -1010,6 +1010,7 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                 .status("pending")
                 .isRead(false)
                 .user(user) 
+                .answer("")
                 .date(LocalDateTime.now())
                 .build();
 
@@ -1043,7 +1044,7 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         List<Feedback> feedbacks = feedbackRepo.findAll();
         return feedbacks.stream()
                 .map(feedback -> FeedbackReponse.builder()
-                        .username(feedback.getUser().getName())
+                        .username(feedback.getUser().getUsername())
                         .email(feedback.getUser().getEmail())
                         .date(feedback.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")))
                         .name(feedback.getUser().getName())
