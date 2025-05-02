@@ -736,7 +736,7 @@ h2 {
 /* ********************************************** ********************************************** */
 .reply-container {
     padding: 1rem 3rem;
-    min-width: 800px;
+    width: 800px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
@@ -978,4 +978,29 @@ h2 {
     opacity: 0.95;
     transition: transform 0.1s ease;
   }
-  
+
+div .date{
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  margin-left: 10px;
+  background-color: #5932ea;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.status-select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  margin-left: 10px;
+}

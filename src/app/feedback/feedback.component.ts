@@ -1,6 +1,7 @@
-import { Component, computed, HostListener, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import jsPDF from 'jspdf';
+import { ServicesService } from '../services/services.service';
 
 
 
@@ -21,9 +22,21 @@ type Feedback = {
   templateUrl: './feedback.component.html',
   styleUrl: './feedback.component.scss'
 })
-export class FeedbackComponent {
+export class FeedbackComponent implements OnInit {
 
   username = signal('');
+
+  service = inject(ServicesService);
+
+  ngOnInit(): void {
+      this.service.getFeedbacks().subscribe((data: Feedback[]) => {
+        this.feedbacks.set(data);
+        console.log(this.feedbacks());
+      });
+
+      this.updatedStatus = this.selectedFeedback()?.status || '';
+
+  }
 
   testUserWithFeedbacks = {
     name: "John Doe",
@@ -169,17 +182,7 @@ throw new Error('Method not implemented.');
     currantPageIndex = signal(0); 
     itemsPerPage = 4;  
 
-  feedbacks = signal([
-    {id: 1, name: 'John Doe', category: 'Great service!', creationDate: '2023-10-01', message: 'Meet the OSI Model, the 7-layer cake of networking. Each layer plays a crucial role in moving data, ensuring smooth communication between devices. From physical cables (Layer 1) to web browsers (Layer 7), this model keeps the internet running!', status: 'pending'},
-    {id: 2, name: 'Jane Smith', category: 'Needs improvement', creationDate: '2023-09-15', message: 'The service was okay, but there is room for improvement.', status: 'solved'},
-    {id: 3, name: 'Alice Johnson', category: 'Excellent', creationDate: '2023-08-20', message: 'I am very satisfied with the service provided.', status: 'rejected'},
-    {id: 4, name: 'Bob Brown', category: 'Not satisfied', creationDate: '2023-07-10', message: 'I was not happy with the service I received.', status: 'pending'},
-    {id: 5, name: 'Charlie Davis', category: 'Great service!', creationDate: '2023-06-05', message: 'The service was fantastic! I will recommend it to others.', status: 'unsolved'},
-    {id: 6, name: 'Diana Evans', category: 'Needs improvement', creationDate: '2023-05-15', message: 'I think the service could be better in some areas.', status: 'pending'},
-    {id: 7, name: 'Ethan Foster', category: 'Excellent', creationDate: '2023-04-25', message: 'I am very pleased with the service I received.', status: 'pending'},
-    {id: 8, name: 'Fiona Green', category: 'Not satisfied', creationDate: '2023-03-30', message: 'I was disappointed with the service.', status: 'pending'},
-    {id: 9, name: 'George Harris', category: 'Great service!', creationDate: '2023-02-20', message: 'I had a great experience with your service.', status: 'pending'},
-  ])
+  feedbacks = signal<any[]>([]);
 
   filteredFeedbacks = computed(() => {
       const query = this.searchQuery().toLowerCase();
@@ -304,4 +307,16 @@ updateCsvTooltipPosition(event: MouseEvent) {
   this.csvTooltipX.set(event.clientX + 12);
   this.csvTooltipY.set(event.clientY + 12);
 }
+
+  isEditingStatus: boolean = false;
+  updatedStatus: string = '';
+  saveStatus() {
+    const feedback = this.selectedFeedback();
+    if (feedback) {
+      feedback.status = this.updatedStatus;
+      this.isEditingStatus = false;
+    }
+  }
+  
+  
 }

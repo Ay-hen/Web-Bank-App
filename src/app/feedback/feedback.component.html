@@ -52,7 +52,7 @@
                     <div class="feedback-row">
                         <div>{{ feedback.name }}</div>
                         <div class="category">{{ feedback.category }}</div>
-                        <div>{{ feedback.creationDate }}</div>
+                        <div class="date">{{ feedback.date }}</div>
                         <div class="message-wrapper">
                             <div class="message clamp">
                                 
@@ -123,7 +123,21 @@
                     <div class="feedback-details">
                         <p><span>Name     </span> {{ selectedFeedback()?.name || "" }}</p>
                         <p><span>Category </span> {{ selectedFeedback()?.category || ""}}</p>
-                        <p><span>Status   </span> {{ selectedFeedback()?.status || ""}}</p>
+                        <p><span>Status</span>
+                            @if (!isEditingStatus) {
+                              {{ selectedFeedback()?.status || "" }}
+                              <button class="edit-btn" (click)="isEditingStatus = true; updatedStatus = selectedFeedback()?.status || ''">Edit</button>
+                            } @else {
+                              <select [value]="updatedStatus" class="status-select">
+                                <option value="Pending">Pending</option>
+                                <option value="Reviewed">Reviewed</option>
+                                <option value="Resolved">Resolved</option>
+                              </select>
+                              <button class="save-btn" (click)="saveStatus()">Save</button>
+                              <button class="cancel-btn" (click)="isEditingStatus = false">Cancel</button>
+                            }
+                          </p>
+                          
                     </div>
 
                     <textarea placeholder="Type your reply here..." class="reply-box"></textarea>
