@@ -1044,6 +1044,7 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         List<Feedback> feedbacks = feedbackRepo.findAll();
         return feedbacks.stream()
                 .map(feedback -> FeedbackReponse.builder()
+                        .id(feedback.getId())
                         .username(feedback.getUser().getUsername())
                         .email(feedback.getUser().getEmail())
                         .date(feedback.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")))

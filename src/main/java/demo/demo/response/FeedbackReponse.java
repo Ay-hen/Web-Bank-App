@@ -18,4 +18,5 @@ public class FeedbackReponse {
     private String category;
     private boolean isRead;
     private String status; 
+    private Long id;
 }
