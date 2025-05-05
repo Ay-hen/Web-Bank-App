@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { NavbarComponent } from "../navbar/navbar.component";
 import { ServicesService } from '../services/services.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -10,7 +11,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent  implements OnInit{
   username = signal('');
   password = signal('');
   loginError = signal('');
@@ -19,7 +20,25 @@ export class LoginComponent {
   usernameWritten = false;
   passwordWritten = false;
 
-  constructor(private authService: ServicesService) {}
+  constructor(private authService: ServicesService, private router: Router) {}
+
+ngOnInit(): void {
+  if (this.authService.isLoggedIn()) {
+    const role = this.authService.getRole();
+
+    switch (role?.toUpperCase()) {
+      case 'ADMIN':
+        this.router.navigate(['/dashboard']);
+        break;
+      case 'USER':
+        this.router.navigate(['/user-feedback']);
+        break;
+      default:
+        this.router.navigate(['/unauthorized']);
+    }
+  }
+}
+
 
   auth = inject(ServicesService);
 

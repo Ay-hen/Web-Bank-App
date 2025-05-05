@@ -131,19 +131,18 @@
                               {{ selectedFeedback()?.status || "" }}
                               <button class="edit-btn" (click)="isEditingStatus = true; updatedStatus = selectedFeedback()?.status || ''">Edit</button>
                             } @else {
-                              <select [value]="updatedStatus" class="status-select">
-                                <option value="Pending">Pending</option>
+                              <select [(ngModel)]="updatedStatus" class="status-select">
                                 <option value="Reviewed">Reviewed</option>
                                 <option value="Resolved">Resolved</option>
                               </select>
-                              <button class="save-btn" (click)="saveStatus()">Save</button>
+                              <button class="save-btn" (click)="saveStatus(updatedStatus)">Save</button>
                               <button class="cancel-btn" (click)="isEditingStatus = false">Cancel</button>
                             }
                           </p>
                           
                     </div>
 
-                    <textarea placeholder="Type your reply here..." class="reply-box"></textarea>
+                    <textarea placeholder="Type your reply here..." (input)="messageUpdate($any($event).target.value)" class="reply-box"></textarea>
                 
                     <div class="button-group">
                         <button class="go-back" (click)="selectedTab = 'tab1'">Back</button>

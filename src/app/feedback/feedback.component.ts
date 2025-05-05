@@ -3,6 +3,7 @@ import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.c
 import jsPDF from 'jspdf';
 import { ServicesService } from '../services/services.service';
 import { HttpClient, HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -19,7 +20,7 @@ type Feedback = {
 @Component({
   selector: 'app-feedback',
   standalone: true,
-  imports: [DashboardNavbarComponent],
+  imports: [DashboardNavbarComponent, FormsModule],
   templateUrl: './feedback.component.html',
   styleUrl: './feedback.component.scss'
 })
@@ -143,10 +144,27 @@ fetchUsers(searchTerm: string): void {
   
 
 
+  message :string = '';
+  messageUpdate (message : string) {
+    this.message = message;
 
+  }
 
 submitReply() {
-throw new Error('Method not implemented.');
+  const id = this.selectedFeedback()?.id;
+  const message = this.message;
+  const status = this.selectedFeedback()?.status;
+  this.http.post(`http://localhost:8181/api/v1/feedback/${id}/reply`, { message, status })
+    .subscribe({
+      next: (response) => {
+        console.log('Reply sent:', response);
+        this.message = ''; // Clear the message after sending
+        this.selectedFeedback.set(null); // Close the reply popup
+      },
+      error: (error) => {
+        console.error('Error sending reply:', error);
+      }
+    })
 }
 
   selectedFeedback = signal<Feedback | null>(null);
@@ -294,10 +312,12 @@ updateCsvTooltipPosition(event: MouseEvent) {
 
   isEditingStatus: boolean = false;
   updatedStatus: string = '';
-  saveStatus() {
+  saveStatus(status : any) {
     const feedback = this.selectedFeedback();
+    console.log('Status : ',status);
     if (feedback) {
       feedback.status = this.updatedStatus;
+      console.log('Status updated:', this.updatedStatus);
       this.isEditingStatus = false;
     }
   }
