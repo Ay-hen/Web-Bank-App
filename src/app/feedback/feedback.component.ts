@@ -2,6 +2,7 @@ import { Component, computed, HostListener, inject, OnInit, signal } from '@angu
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import jsPDF from 'jspdf';
 import { ServicesService } from '../services/services.service';
+import { HttpClient, HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
 
 
 
@@ -24,9 +25,54 @@ type Feedback = {
 })
 export class FeedbackComponent implements OnInit {
 
+  isDownloading = signal<{ csv: boolean, pdf: boolean }>({ csv: false, pdf: false });
+  downloadProgress = signal<{ csv: number, pdf: number }>({ csv: 0, pdf: 0 });
+
+  downloadFeedbacks(type: 'csv' | 'pdf', username: string) {
+      // Set loading state
+      this.isDownloading.update(state => ({ ...state, [type]: true }));
+      this.downloadProgress.update(state => ({ ...state, [type]: 0 }));
+  
+      const apiUrl = `http://localhost:8181/api/v1/user/${username}/feedback/${type}`;
+  
+      this.http.get(apiUrl, {
+        responseType: 'blob',
+        reportProgress: true,
+        observe: 'events'
+      }).subscribe({
+        next: (event: HttpEvent<any>) => {
+          if (event.type === HttpEventType.DownloadProgress) {
+            const progress = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            this.downloadProgress.update(state => ({ ...state, [type]: progress }));
+          } else if (event instanceof HttpResponse) {
+            const blob = event.body;
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${username.replace(/\s+/g, '_')}_transactions.${type}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+  
+            // Reset states
+            this.isDownloading.update(state => ({ ...state, [type]: false }));
+            this.downloadProgress.update(state => ({ ...state, [type]: 0 }));
+          }
+        },
+        error: (error) => {
+        
+          console.error('Download error:', error);
+          this.isDownloading.update(state => ({ ...state, [type]: false }));
+          this.downloadProgress.update(state => ({ ...state, [type]: 0 }));
+        }
+      });
+    }
+
   username = signal('');
 
   service = inject(ServicesService);
+  http = inject(HttpClient);
 
   ngOnInit(): void {
       this.service.getFeedbacks().subscribe((data: Feedback[]) => {
@@ -38,123 +84,61 @@ export class FeedbackComponent implements OnInit {
 
   }
 
-  testUserWithFeedbacks = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    feedbacks: [
-      {
-        id: 1,
-        name: "Sarah Johnson",
-        category: "Product Quality",
-        creationDate: "2023-10-15",
-        message: "The product arrived damaged. The packaging was torn and contents were partially missing.",
-        status: "Pending"
+
+  filteredUsers = signal<any[]>([]);
+showUserList = signal(false);
+noUsersFound = signal(false);
+
+// Add this method to fetch users
+fetchUsers(searchTerm: string): void {
+  if (searchTerm.length < 1) {
+    this.filteredUsers.set([]);
+    this.showUserList.set(false);
+    this.noUsersFound.set(false);
+    return;
+  }
+
+  
+  this.http.get<any[]>(`http://localhost:8181/api/v1/users?search=${encodeURIComponent(searchTerm)}`)
+    .subscribe({
+      next: (users) => {
+        console.log('Fetched users : ', users);
+        this.filteredUsers.set(users);
+        this.showUserList.set(users.length > 0);
+        this.noUsersFound.set(users.length === 0);
       },
-      {
-        id: 2,
-        name: "Michael Chen",
-        category: "Customer Service",
-        creationDate: "2023-10-14",
-        message: "Excellent support! The representative went above and beyond to resolve my issue quickly.",
-        status: "Resolved"
-      },
-      {
-        id: 3,
-        name: "Emma Williams",
-        category: "Shipping",
-        creationDate: "2023-10-12",
-        message: "Delivery was late by 3 days. The tracking information wasn't updated properly.",
-        status: "Pending"
-      },
-      {
-        id: 4,
-        name: "David Kim",
-        category: "Product Feature",
-        creationDate: "2023-10-10",
-        message: "Would love to see dark mode added to the mobile app. Current bright theme strains my eyes at night.",
-        status: "Under Review"
-      },
-      {
-        id: 5,
-        name: "Lisa Rodriguez",
-        category: "Billing",
-        creationDate: "2023-10-08",
-        message: "I was charged twice for my subscription this month. Need help getting a refund for the duplicate charge.",
-        status: "Pending"
+      error: (err) => {
+        console.error('Error fetching users:', err);
+        this.filteredUsers.set([]);
+        this.showUserList.set(false);
+        this.noUsersFound.set(true);
       }
-    ]
-  };
+    });
+}
 
+// Add this method to your component class
+  handleBlur() {
+    setTimeout(() => {
+        this.showUserList.set(false);
+        this.noUsersFound.set(false);
+    }, 200);
+  }
 
+// Update your username input handler
+  onUsernameInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.username.set(value);
+    this.fetchUsers(value);
+  }
 
-  private convertToCSV(data: Feedback[]): string {
-    const headers = ['ID', 'Name', 'Category', 'Date', 'Message', 'Status'];
-    const rows = data.map(f =>
-      [f.id, f.name, f.category, f.creationDate, `"${f.message.replace(/"/g, '""')}"`, f.status].join(',')
-    );
-    return [headers.join(','), ...rows].join('\n');
+  selectUser(user: any): void {
+    this.username.set(user.username); // or whatever property contains the username
+    this.filteredUsers.set([]);
+    this.showUserList.set(false);
+    this.noUsersFound.set(false);
   }
   
-  private convertToText(data: Feedback[]): string {
-    return data.map(f =>
-      `ID: ${f.id}
-  Name: ${f.name}
-  Category: ${f.category}
-  Date: ${f.creationDate}
-  Message: ${f.message}
-  Status: ${f.status}
-  
-  ----------------------------
-  `).join('\n');
-  }
-  
 
-  downloadFeedbacks(type: 'csv' | 'pdf', username: string) {
-    const data = this.feedbacks().filter(f =>
-      f.name.toLowerCase() === username.toLowerCase()
-    );
-  
-    if (data.length === 0) {
-      alert('No feedbacks found for this user');
-      return;
-    }
-  
-    if (type === 'csv') {
-      const csv = this.convertToCSV(data);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${username}_feedbacks.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } else if (type === 'pdf') {
-      const doc = new jsPDF();
-      doc.setFontSize(12);
-      doc.text(`Feedbacks for ${username}`, 10, 10);
-  
-      let y = 20;
-      data.forEach((f, index) => {
-        doc.text(`${index + 1}. Category: ${f.category}`, 10, y);
-        y += 8;
-        doc.text(`   Date: ${f.creationDate}`, 10, y);
-        y += 8;
-        doc.text(`   Status: ${f.status}`, 10, y);
-        y += 8;
-        const messageLines = doc.splitTextToSize(`Message: ${f.message}`, 180); // 180 = max width
-        doc.text(messageLines, 10, y);
-        y += messageLines.length * 10; // Move y for next entry
-
-        y += 12;
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
-        }
-      });
-  
-      doc.save(`${username}_feedbacks.pdf`);
-    }
-  }
   
   
 
@@ -204,9 +188,9 @@ throw new Error('Method not implemented.');
     
       // Sort
       if (sort === 'newest') {
-        list = [...list].sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        list = [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       } else if (sort === 'oldest') {
-        list = [...list].sort((a, b) => new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime());
+        list = [...list].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       }
     
       // Paginate
@@ -318,5 +302,5 @@ updateCsvTooltipPosition(event: MouseEvent) {
     }
   }
   
-  
+  showId: boolean = false;
 }

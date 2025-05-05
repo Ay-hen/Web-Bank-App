@@ -39,6 +39,7 @@
 
             <!-- Table Head -->
             <div class="feedbacks-table-head">
+                <div>ID</div>
                 <div>Name</div>
                 <div class="amount">Category</div>
                 <div class="number">Date</div>
@@ -50,6 +51,7 @@
             <div class="feedbacks-list">
                 @for (feedback of filteredFeedbacks(); track feedback.id) {
                     <div class="feedback-row">
+                        <div>{{ feedback.id }}</div>
                         <div>{{ feedback.name }}</div>
                         <div class="category">{{ feedback.category }}</div>
                         <div class="date">{{ feedback.date }}</div>
@@ -122,6 +124,7 @@
                 @if (selectedFeedback()) {
                     <div class="feedback-details">
                         <p><span>Name     </span> {{ selectedFeedback()?.name || "" }}</p>
+                        <p class="invisible"><span>ID     </span> {{ selectedFeedback()?.id || "" }}</p>
                         <p><span>Category </span> {{ selectedFeedback()?.category || ""}}</p>
                         <p><span>Status</span>
                             @if (!isEditingStatus) {
@@ -156,13 +159,31 @@
                 <div class="generate-feedback-container">
                     <h2>Generate User Feedbacks</h2>
 
-                    <input
-                        class = "username-input"
-                        type="text"
-                        placeholder="Enter username"
-                        [value]="username()"
-                        (input)="username.set($any($event).target .value)"
+                    <div class="username-autocomplete">
+                        <input
+                            class="username-input"
+                            type="text"
+                            placeholder="Enter username"
+                            [value]="username()"
+                            (input)="onUsernameInput($event)"
+                            (focus)="username() && fetchUsers(username())"
+                            (blur)="handleBlur()"
                         />
+                    
+                        @if (showUserList()) {
+                            <ul class="user-list">
+                                @for (user of filteredUsers(); track user.id) {
+                                    <li (mousedown)="selectUser(user)">
+                                        {{ user.username }} - {{ user.name }}
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        
+                        @if (noUsersFound()) {
+                            <div class="no-users">No users found</div>
+                        }
+                    </div>
                         <div class="download-buttons">
                             <div class="hover-text-wrapper"
                                 (mouseenter)="showTooltip()"
@@ -220,6 +241,22 @@
                 <h3>Message from {{ selectedMessage()?.name }}</h3>
                 <p>{{ selectedMessage()?.message }}</p>
                 <button (click)="closePopup()">Close</button>
+            </div>
+        </div>
+    }
+
+    @if(isDownloading().csv || isDownloading().pdf){
+        <div class="download-popup" >
+            <div class="popup-content">
+            <!-- <img src="download_cloud.svg" alt="" class="popup-icon" /> -->
+            <h3>Downloading {{ isDownloading().pdf ? 'PDF' : 'CSV' }}...</h3>
+            <div class="progress-bar">
+                <div 
+                class="progress-fill"
+                [style.width.%]="isDownloading().pdf ? downloadProgress().pdf : downloadProgress().csv">
+                </div>
+            </div>
+            <p>{{ isDownloading().pdf ? downloadProgress().pdf : downloadProgress().csv }}%</p>
             </div>
         </div>
     }

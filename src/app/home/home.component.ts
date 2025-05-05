@@ -1,5 +1,7 @@
 import { AfterViewInit, Component, HostListener, OnInit } from '@angular/core';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { ServicesService } from '../services/services.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -8,7 +10,7 @@ import { NavbarComponent } from '../navbar/navbar.component';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent implements AfterViewInit, OnInit {
   ngAfterViewInit() {
     this.setupScrollAnimations();
   }
@@ -51,6 +53,26 @@ export class HomeComponent implements AfterViewInit {
       observer.observe(el);
     });
   }
+
+  constructor(private authService: ServicesService, private router: Router) {}
+
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      const role = this.authService.getRole();
+
+      switch (role?.toUpperCase()) {
+        case 'ADMIN':
+          this.router.navigate(['/dashboard']);
+          break;
+        case 'USER':
+          this.router.navigate(['/user-feedback']);
+          break;
+        default:
+          this.router.navigate(['/unauthorized']);
+      }
+    }
+  }
+
 
 
   app : string = "The borrower submits a loan application to the bank, either in person, online, or through other channels. The application includes personal and financial information, such as income, employment history, credit score, and the purpose of the loan.";
