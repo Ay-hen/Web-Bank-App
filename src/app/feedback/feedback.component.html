@@ -86,7 +86,7 @@
                             }
                         </div>
                         <div class="reply-wrapper">
-                            @if (feedback.status.toLowerCase() === 'pending') {
+                            @if (feedback.read == false) {
                                 <button class="reply-btn" (click)="replyToFeedback(feedback)">Reply</button>
                             } @else {
                                 <button class="reply-btn disabled" disabled>Replied</button>
@@ -151,6 +151,16 @@
                     } @else {
                     <h3>Select a Feedback</h3>
                     }
+
+                    @if (replySentSuccessfully()) {
+                        <div class="popup-overlay">
+                            <div class="popup">
+                                <p>Feedback sent successfully!</p>
+                                <button (click)="closeReplySuccessPopup()">OK</button>
+                            </div>
+                        </div>
+                    }
+                    
             </div>
             }
 

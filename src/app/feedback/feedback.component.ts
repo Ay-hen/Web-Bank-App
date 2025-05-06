@@ -150,22 +150,38 @@ fetchUsers(searchTerm: string): void {
 
   }
 
-submitReply() {
-  const id = this.selectedFeedback()?.id;
-  const message = this.message;
-  const status = this.selectedFeedback()?.status;
-  this.http.post(`http://localhost:8181/api/v1/feedback/${id}/reply`, { message, status })
-    .subscribe({
+  replySentSuccessfully = signal(false);
+
+  submitReply() {
+    const id = this.selectedFeedback()?.id;
+    const message = this.message;
+    const status = this.selectedFeedback()?.status;
+  
+    this.http.post(
+      `http://localhost:8181/api/v1/feedback/${id}/reply`,
+      { message, status },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'text' as const
+      }
+    ).subscribe({
       next: (response) => {
         console.log('Reply sent:', response);
-        this.message = ''; // Clear the message after sending
-        this.selectedFeedback.set(null); // Close the reply popup
+        this.message = '';
+        this.replySentSuccessfully.set(true); 
       },
       error: (error) => {
         console.error('Error sending reply:', error);
       }
-    })
-}
+    });
+  }
+
+  closeReplySuccessPopup() {
+    this.replySentSuccessfully.set(false);
+    this.selectedFeedback.set(null);
+    this.selectedTab = 'tab1';
+  }
+  
 
   selectedFeedback = signal<Feedback | null>(null);
   activeTab = signal<'tab1' | 'tab2'>('tab1');
