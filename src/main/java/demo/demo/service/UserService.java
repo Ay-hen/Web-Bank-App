@@ -180,6 +180,25 @@ public class UserService {
             .map(this::toResponse)
             .collect(Collectors.toList());
     }
+    
+    public List<CustomerResponse> searchUsers(String search) {
+        
+        List<User> users = userRepo
+            .findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(search, search);
+        return users.stream()
+            .filter(user -> user.getRole().equals("USER"))
+            .map(user -> {
+                return CustomerResponse.builder()
+                    .id(user.getId())
+                    .name(user.getName())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .createdDate(user.getCreationDate())
+                    .status(user.isBlocked() ? "Blocked" : "Active")
+                    .build();
+            })
+            .collect(Collectors.toList());
+    }
 
     private CustomerResponse toResponse(Customer customer) {
         Account account = customer.getAccount();
@@ -880,7 +899,7 @@ public class UserService {
 public List<Map<String, Object>> getYearlyTransactionAmounts() {
     List<Integer> years = a2aRepo.findTransactionYears();
     years.addAll(qrCodeRepo.findTransactionYears());
-    Set<Integer> uniqueYears = new TreeSet<>(years); // remove duplicates and sort
+    Set<Integer> uniqueYears = new TreeSet<>(years); 
 
     List<Map<String, Object>> result = new ArrayList<>();
 
@@ -1057,6 +1076,80 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                 .collect(Collectors.toList());
     }
 
+
+    public byte[] generateFeedbacksPdfReport(String username) {
+        List<Feedback> feedbacks = feedbackRepo.findByUserUsername(username);
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    
+        if (feedbacks.isEmpty()) {
+            throw new RuntimeException("No feedbacks found for user: " + username);
+        }
+    
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document document = new Document();
+    
+        try {
+            PdfWriter.getInstance(document, baos);
+            document.open();
+    
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+            Font textFont = FontFactory.getFont(FontFactory.COURIER, 11);
+    
+            document.add(new Paragraph("User Feedback Report", titleFont));
+            document.add(new Paragraph("Username : " + username, textFont));
+            document.add(new Paragraph("Name : " + user.getName(), textFont));
+            document.add(new Paragraph("Generated at : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mma")), textFont));
+            document.add(new Paragraph(" "));
+    
+            for (Feedback fb : feedbacks) {
+                document.add(new Paragraph(String.format(
+                    "%-12s: %s", "ID", fb.getId()), textFont));
+                document.add(new Paragraph(String.format(
+                    "%-12s: %s", "Category", fb.getCategory()), textFont));
+                document.add(new Paragraph(String.format(
+                    "%-12s: %s", "Status", fb.getStatus()), textFont));
+                document.add(new Paragraph(String.format(
+                    "%-12s: %s", "Date", fb.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mma"))), textFont));
+                document.add(new Paragraph("Feedback : " + fb.getMessage(), textFont));
+                document.add(new Paragraph("Answer : " + (fb.getAnswer() != null ? fb.getAnswer() : "Not replied"), textFont));
+                document.add(new Paragraph("------------------------------------------------------------"));
+            }
+    
+            document.close();
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating feedback PDF", e);
+        }
+    
+        return baos.toByteArray();
+    }
+    
+    public byte[] generateFeedbacksCsvReport(String username) {
+        List<Feedback> feedbacks = feedbackRepo.findByUserUsername(username);
+    
+        if (feedbacks.isEmpty()) {
+            throw new RuntimeException("No feedbacks found for user: " + username);
+        }
+    
+        StringBuilder sb = new StringBuilder();
+        sb.append("ID,Category,Status,Date,Message,Answer\n");
+    
+        for (Feedback fb : feedbacks) {
+            sb.append(String.format("\"%d\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                    fb.getId(),
+                    fb.getCategory(),
+                    fb.getStatus(),
+                    fb.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mma")),
+                    fb.getMessage().replace("\"", "'"),
+                    fb.getAnswer() != null ? fb.getAnswer().replace("\"", "'") : "Not replied"
+            ));
+        }
+    
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+    
+
+
     public ResponseEntity<String> updateFeedbackStatus(Long feedbackId, String status) {
         Feedback feedback = feedbackRepo.findById(feedbackId)
                 .orElseThrow(() -> new RuntimeException("Feedback not found"));
@@ -1104,5 +1197,20 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         }
 
         return ResponseEntity.ok(transactions);
+    }
+
+    public void respondToFeedback(Long feedbackId, String response, String status) {
+        Feedback feedback = feedbackRepo.findById(feedbackId)
+                .orElseThrow(() -> new RuntimeException("Feedback not found"));
+        
+        System.out.println("Feedback is : " + feedback);
+        
+        feedback.setAnswer(response);
+        feedback.setStatus(status);
+        feedback.setRead(true);
+
+        System.out.println("Changed Feedback : "+ feedback);
+        
+        feedbackRepo.save(feedback);
     }
 }

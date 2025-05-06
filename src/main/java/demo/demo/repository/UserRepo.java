@@ -17,5 +17,6 @@ public interface UserRepo extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String userEmail);
     List<User> findByCreationDateAfter(LocalDateTime date);
+    List<User> findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(String name, String username);
 
 }

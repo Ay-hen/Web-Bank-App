@@ -20,10 +20,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import demo.demo.dto.CustomerDTO;
-import demo.demo.dto.CustomerResponse;
 import demo.demo.dto.FeedbackDTO;
+import demo.demo.dto.FeedbackSendDTO;
+
+import demo.demo.dto.CustomerResponse;
 import demo.demo.model.Customer;
+import demo.demo.model.User;
 import demo.demo.repository.CustomerRepo;
+import demo.demo.repository.UserRepo;
 import demo.demo.response.FeedbackReponse;
 import demo.demo.service.UserService;
 
@@ -37,6 +41,9 @@ public class MainController {
 
     @Autowired
     private CustomerRepo customerRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     @GetMapping("/permissions")
     public ResponseEntity<?> getPermissions() {
@@ -53,6 +60,15 @@ public class MainController {
             @RequestParam(required = false) String search) {
         if (search != null && !search.isBlank()) {
             return ResponseEntity.ok(userService.searchCustomers(search));
+        }
+        return ResponseEntity.ok(userService.getAllCustomerResponses());
+    }
+    
+    @GetMapping("/users")
+    public ResponseEntity<List<CustomerResponse>> searchUsers(
+            @RequestParam(required = false) String search) {
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(userService.searchUsers(search));
         }
         return ResponseEntity.ok(userService.getAllCustomerResponses());
     }
@@ -125,6 +141,44 @@ public class MainController {
         return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
     }
 
+
+    @GetMapping("/user/{username}/feedback/pdf")
+    public ResponseEntity<byte[]> downloadUserFeedbackPDF(@PathVariable String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        byte[] pdfBytes = userService.generateFeedbacksPdfReport(username);  
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);  
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                    .filename(user.getName().replaceAll(" ", "_").toLowerCase() + "_feedback.pdf")  // ✅ Correct extension
+                    .build()
+        );
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/user/{username}/feedback/csv")
+    public ResponseEntity<byte[]> downloadUserFeedbackCSV(@PathVariable String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        byte[] csvBytes = userService.generateFeedbacksCsvReport(username);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                    .filename(user.getName().replaceAll(" ", "_").toLowerCase() + "_feedback.csv")
+                    .build()
+        );
+
+        return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
+    }
+    
 
 
     @GetMapping("/transactions")
@@ -240,4 +294,9 @@ public class MainController {
         return ResponseEntity.ok(userService.getAllFeedbacks());
     }
 
+    @PostMapping("/feedback/{id}/reply")
+    public ResponseEntity<String> respondToFeedback(@PathVariable Long id, @RequestBody FeedbackSendDTO request) {
+        userService.respondToFeedback(id, request.getMessage(),request.getStatus());
+        return ResponseEntity.ok("Response sent successfully.");
+    }
 }
