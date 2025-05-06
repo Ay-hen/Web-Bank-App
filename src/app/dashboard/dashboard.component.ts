@@ -208,8 +208,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           tension: 0.4
         }]
       },
-      options: { responsive: true }
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true // ✅ this forces the Y-axis to start at 0
+          }
+        }
+      }
     });
+    
 
     // Initialize Transaction Charts
     this.transactionChart = new Chart(this.transactionChartRef.nativeElement, {
