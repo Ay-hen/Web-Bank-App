@@ -45,7 +45,98 @@
         }
 
         @default{
-            <h2>Ok hhhh</h2>
+            <div class="feedbacks-header">
+                <h2>All Feedback</h2>
+                <div class="actions">
+                    <input
+                        type="text"
+                        [value]="searchQuery()"
+                        (input)="searchQuery.set($any($event).target.value)"
+                        placeholder="Search feedbacks..."
+                    />
+
+                    <div class="custom-select-wrapper">
+                        <span class="select-label">sort by :</span>
+                        <select (change)="sortBy.set($any($event).target.value)">
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                        </select>
+                        <img src="icons/arrow.svg" alt="Arrow" class="custom-arrow" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Head -->
+            <div class="feedbacks-table-head">
+                <div>ID</div>
+                <div class="amount">Category</div>
+                <div class="number">Date</div>
+                <div class="email">Message</div>
+                <div class="status-head"><span>Status</span></div>
+                
+            </div>
+
+            <div class="feedbacks-list">
+                @for (feedback of filteredFeedbacks(); track feedback.id) {
+                    <div class="feedback-row">
+                        <div>{{ feedback.id }}</div>
+                        <div class="category">{{ feedback.category }}</div>
+                        <div class="date">{{ feedback.date }}</div>
+                        <div class="message-wrapper">
+                            <div class="message clamp">
+                                
+                                <a class="show-link" (click)="openMessagePopup(feedback)">show message</a>
+                                
+                            </div>
+                        </div>
+            
+                        <!-- Status Column -->
+                        <div class="status-wrapper">
+                            @if (feedback.status.toLowerCase() === 'pending') {
+                                <div class="status clickable-status pending" (click)="toggleMore(feedback)">
+                                    {{ feedback.status }}
+                                    @if (activePopoverFeedback() === feedback) {
+                                        <div class="popover active">
+                                            <ul>
+                                                <li (click)="setStatus(feedback, 'resolved'); $event.stopPropagation()">
+                                                    <span>Resolve</span>
+                                                </li>
+                                                <li class="block" (click)="setStatus(feedback, 'unresolved'); $event.stopPropagation()">
+                                                    <span>Block</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                            } @else {
+                                <div class="status">{{ feedback.status }}</div>
+                            }
+                        </div>
+                        
+                    </div>
+                }
+            </div>
+
+            @if (feedbacks().length > 4) {
+                <div class="pagination-controls">
+                    <!-- Left Arrow -->
+                    <img 
+                        src="icons/arrow_left.svg" 
+                        (click)="goToPreviousPage()" 
+                        [class.disabled]="currentPage() === 0"
+                    />
+            
+                    <!-- Current Page -->
+                    <span>{{ currentPage() + 1 }} of {{ totalPages() }}</span>
+            
+                    <!-- Right Arrow -->
+                    <img 
+                        src="icons/arrow_right.svg" 
+                        (click)="goToNextPage()" 
+                        [class.disabled]="currentPage() === totalPages() - 1"
+                    />
+                </div>
+            }
         }
     }
 
@@ -57,6 +148,16 @@
     @if (errorMessage) {
         <div class="feedback-error">
             ❌ {{ errorMessage }}
+        </div>
+    }
+
+    @if (selectedMessage()) {
+        <div class="message-popup-overlay" (click)="closePopup()">
+            <div class="message-popup" (click)="$event.stopPropagation()">
+                <h2>Feedback Message</h2>
+                <p>{{ selectedMessage()?.message }}</p>
+                <button (click)="closePopup()">Close</button>
+            </div>
         </div>
     }
 </div>
