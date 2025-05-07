@@ -11,8 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.OneToOne;
+
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -57,12 +60,18 @@ public class Account {
     @Column(name = "account_authenticator")
     private String authenticator;    
 
-    @Column(name = "account_currency", nullable = false, length = 6)
-    private String accountCurrency;
+    @ManyToOne
+    @JoinColumn(name = "currency_id", nullable = false)
+    private Currency currency;
 
     @Column(name = "account_status", length = 10)
     private String accountStatus;
 
+    @OneToMany(mappedBy = "accountDebit", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<A2ATransfer> a2aTransferDebit;
+
+    @OneToMany(mappedBy = "accountCredit", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<A2ATransfer> a2aTransferCredit;
 
     @Column(name = "account_number", nullable = false, length = 10)
     private String accountNumber;

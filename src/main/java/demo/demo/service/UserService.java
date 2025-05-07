@@ -343,7 +343,7 @@ public class UserService {
             if (account != null) {
                 csvPrinter.printRecord("RIB", account.getRib());
                 csvPrinter.printRecord("Balance", account.getBalance().getCurrentAmount());
-                csvPrinter.printRecord("Currency", account.getAccountCurrency());
+                csvPrinter.printRecord("Currency", account.getCurrency().getCurrencyName());
             }
 
             csvPrinter.println();
