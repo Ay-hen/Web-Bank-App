@@ -293,6 +293,11 @@ public class MainController {
     public ResponseEntity<List<FeedbackReponse>> getAllFeedbacks() {
         return ResponseEntity.ok(userService.getAllFeedbacks());
     }
+    
+    @GetMapping("/{username}/feedbacks")
+    public ResponseEntity<List<FeedbackReponse>> getUserFeedbacks(@PathVariable String username) {
+        return ResponseEntity.ok(userService.getUserFeedback(username));
+    }
 
     @PostMapping("/feedback/{id}/reply")
     public ResponseEntity<String> respondToFeedback(@PathVariable Long id, @RequestBody FeedbackSendDTO request) {

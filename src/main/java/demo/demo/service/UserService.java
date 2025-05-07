@@ -55,6 +55,7 @@ import demo.demo.response.FeedbackReponse;
 import demo.demo.model.A2ATransfer;
 import demo.demo.model.Account;
 import demo.demo.model.ActivityTracking;
+import demo.demo.model.Balance;
 import demo.demo.model.Customer;
 import demo.demo.model.Feedback;
 import demo.demo.model.Permission;
@@ -62,6 +63,7 @@ import demo.demo.model.QRCode;
 import demo.demo.model.User;
 
 import demo.demo.repository.PermissionRepo;
+import demo.demo.repository.BalanceRepo;
 import demo.demo.repository.QRCodeRepo;
 import demo.demo.repository.UserRepo;
 import demo.demo.repository.A2ATransferRepo;
@@ -97,6 +99,9 @@ public class UserService {
 
     @Autowired
     private FeedbackRepo feedbackRepo;
+
+    @Autowired
+    private BalanceRepo balanceRepo;
     
     public void assignPermissionsToUser(Long userId, List<Long> permissionIds) {
 
@@ -165,7 +170,7 @@ public class UserService {
                     .name(customer.getName())
                     .email(customer.getEmail())
                     .phoneNumber(customer.getPhoneNumber())
-                    .amount(account != null ? account.getAmount() : BigDecimal.ZERO)
+                    .rib(account != null ? account.getRib() : "N/A")
                     .createdDate(customer.getCreationDate())
                     .status(account != null ? account.getAccountStatus() : "N/A")
                     .build();
@@ -208,7 +213,7 @@ public class UserService {
                 .username(customer.getUsername())
                 .email(customer.getEmail())
                 .phoneNumber(customer.getPhoneNumber())
-                .amount(account != null ? account.getAmount() : BigDecimal.ZERO)
+                .amount(account != null ? account.getBalance().getCurrentAmount() : BigDecimal.ZERO)
                 .createdDate(customer.getCreationDate())
                 .status(account != null ? account.getAccountStatus() : "N/A")
                 .build();
@@ -230,7 +235,7 @@ public class UserService {
         Account account = customer.getAccount();
 
         // Add account-related fields
-        reportData.put("amount", account != null ? account.getAmount() : BigDecimal.ZERO);
+        reportData.put("amount", account != null ? account.getBalance().getCurrentAmount() : BigDecimal.ZERO);
         reportData.put("rib", account != null ? account.getRib() : "N/A");
 
         // Add user-related fields
@@ -286,7 +291,7 @@ public class UserService {
             document.add(new Paragraph("Security Q&A    :   " + customer.getSecurityQuestion() + " / " + customer.getAnswer()));
             if (account != null) {
                 document.add(new Paragraph("RIB         :   " + account.getRib()));
-                document.add(new Paragraph("Amount      :   " + account.getAmount()));
+                document.add(new Paragraph("Balance      :   " + account.getBalance().getCurrentAmount()));
             }
             document.add(new Paragraph(" "));
 
@@ -337,7 +342,7 @@ public class UserService {
 
             if (account != null) {
                 csvPrinter.printRecord("RIB", account.getRib());
-                csvPrinter.printRecord("Amount", account.getAmount());
+                csvPrinter.printRecord("Balance", account.getBalance().getCurrentAmount());
                 csvPrinter.printRecord("Currency", account.getAccountCurrency());
             }
 
@@ -394,7 +399,7 @@ public class UserService {
     
             if (account != null) {
                 document.add(new Paragraph(String.format("%-12s: %s", "RIB", account.getRib()), monoFont));
-                document.add(new Paragraph(String.format("%-12s: %s", "Amount", account.getAmount()), monoFont));
+                document.add(new Paragraph(String.format("%-12s: %s", "Balance ", account.getBalance().getCurrentAmount()), monoFont));
             }
     
             document.add(new Paragraph(" "));
@@ -445,7 +450,7 @@ public class UserService {
                 customer.getCin(),
                 customer.getPhoneNumber(),
                 account != null ? account.getRib() : "N/A",
-                account != null ? account.getAmount() : "0"
+                account != null ? account.getBalance().getCurrentAmount() : "0"
         ));
     
         sb.append("\nTransaction Details\n");
@@ -606,12 +611,24 @@ public class UserService {
                     .orElseThrow(() -> new RuntimeException("Receiver account not found"));
             user = sender.getCustomer();
 
-            if (sender.getAmount().compareTo(amount) < 0) {
+            if (sender.getBalance().getCurrentAmount().compareTo(amount) < 0) {
                 throw new RuntimeException("Insufficient balance in sender's account");
             }
 
-            sender.setAmount(sender.getAmount().subtract(amount));
-            receiver.setAmount(receiver.getAmount().add(amount));
+            Balance senderBalance = Balance.builder()
+                    .currentAmount(sender.getBalance().getCurrentAmount())
+                    .account(sender)
+                    .build();
+            Balance receiverBalance = Balance.builder()
+                    .currentAmount(receiver.getBalance().getCurrentAmount())
+                    .account(receiver)
+                    .build();
+
+            balanceRepo.save(senderBalance);
+            balanceRepo.save(receiverBalance);
+
+            sender.setBalance(senderBalance);
+            receiver.setBalance(receiverBalance);
 
             accountRepo.save(sender);
             accountRepo.save(receiver);
@@ -1212,5 +1229,23 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         System.out.println("Changed Feedback : "+ feedback);
         
         feedbackRepo.save(feedback);
+    }
+
+    public List<FeedbackReponse> getUserFeedback(String username){
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+        List<Feedback> feedbacks = user.getFeedbacks();
+
+        return feedbacks.stream()
+                .map(feedback -> FeedbackReponse.builder()
+                        .id(feedback.getId())
+                        .message(feedback.getMessage())
+                        .category(feedback.getCategory())
+                        .isRead(feedback.isRead())
+                        .date(feedback.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")))
+                        .status(feedback.getStatus())
+                        .build())
+                .collect(Collectors.toList()); 
     }
 }

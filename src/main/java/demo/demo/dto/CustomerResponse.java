@@ -19,6 +19,7 @@ public class CustomerResponse {
     private String email;
     private String phoneNumber;
     private BigDecimal amount;
+    private String rib;
     private LocalDateTime createdDate;
     private String status;
 }
