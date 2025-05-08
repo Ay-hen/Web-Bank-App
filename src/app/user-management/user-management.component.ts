@@ -13,6 +13,7 @@ type Customer = {
   status: string;
   creationDate: string;
   activities : any;
+  rib : string;
 };
 
 

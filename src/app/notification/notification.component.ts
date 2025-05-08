@@ -20,7 +20,7 @@ export class NotificationComponent {
   onTypeChange(value: string) {
     this.selectedType.set(value as 'all' | 'group');
   }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
   onScheduleChange(value: string) {
     this.schedule.set(value as 'now' | 'custom');
   }

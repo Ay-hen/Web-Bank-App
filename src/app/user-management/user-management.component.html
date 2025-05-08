@@ -41,7 +41,7 @@
             <!-- Table Head -->
             <div class="customers-table-head">
                 <div>Name</div>
-                <div class="amount">Amount</div>
+                <div class="amount">Account Number</div>
                 <div class="number">Phone Number</div>
                 <div class="email">Email</div>
                 <div class="status">Status</div>
@@ -54,7 +54,7 @@
                 @for (customer of filteredCustomers(); track customer.id) {
                     <div class="customer-row">
                         <div>{{ customer.name }}</div>
-                        <div>{{ customer.amount }}</div>
+                        <div>{{ customer.rib }}</div>
                         <div>{{ customer.phoneNumber }}</div>
                         <div>{{ customer.email }}</div>
                         <div>{{ customer.status }}</div>

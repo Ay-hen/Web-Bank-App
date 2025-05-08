@@ -130,16 +130,16 @@ p {
     animation: fadeIn 0.5s ease-out;
 }
 
-/* Hover effects for tab content */
+
 .tab-content:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Responsive Design */
+
 @media (max-width: 1024px) {
     .container {
         margin-left: 200px;
-        margin-top: 1rem; /* Slightly smaller margin for tablets */
+        margin-top: 1rem; 
         margin-right: 1rem;
         margin-bottom: 1rem;
         padding: 20px;
@@ -283,12 +283,12 @@ p {
   
   .custom-select-wrapper select:focus {
     border: none;
-    box-shadow: 0 0 0 2px rgba(89, 50, 234, 0.2); /* Focus outline effect */
+    box-shadow: 0 0 0 2px rgba(89, 50, 234, 0.2); 
   }
   
   .custom-select-wrapper .custom-arrow {
     position: absolute;
-    right: 12px; /* Adjust to give space on the right */
+    right: 12px; 
     pointer-events: none;
     width: 16px;
     height: 16px;
@@ -304,7 +304,7 @@ p {
 /* Table Head Styles */
 .customers-table-head {
     display: grid;
-    grid-template-columns: 1.30fr 1fr 2fr 2fr 1fr 1.75fr 0.1fr 0.1fr;
+    grid-template-columns: 1.30fr 2.4fr 2fr 2fr 1fr 1.75fr 0.1fr 0.1fr;
     gap: 2rem;
     padding: 1rem 1.5rem;
     font-weight: 600;
@@ -341,7 +341,7 @@ p {
 
 .customer-row {
     display: grid;
-    grid-template-columns: 1.25fr 1fr 1.25fr 2fr 1fr 1fr 0.1fr 0.1fr;
+    grid-template-columns: 1.25fr 2fr 1.25fr 2.2fr 1fr 1fr 0.1fr 0.1fr;
     gap: 1rem;
     padding: 0.1rem 1.5rem;
     background-color: white;
