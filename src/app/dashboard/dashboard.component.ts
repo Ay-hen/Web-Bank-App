@@ -234,20 +234,49 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });    
 
-    this.transactionGrowthChart = new Chart(this.percentageChartRef.nativeElement, {
-      type: 'line',
-      data: {
-        labels: percentageData.map(item => item.month || item.year),
-        datasets: [{
-          label: 'Transaction Growth (%)',
-          data: percentageData.map(item => item.growth),
-          fill: false,
-          borderColor: '#00b4d8',
-          tension: 0.4
-        }]
-      },
-      options: { responsive: true }
-    });
+    const growthValues = percentageData.map(item => item.growth);
+const minGrowth = Math.min(...growthValues);
+const maxGrowth = Math.max(...growthValues);
+
+// Calculate y-axis min and max
+let suggestedMin = 0;
+let suggestedMax = maxGrowth;
+
+if (minGrowth < 0) {
+  const absMax = Math.max(Math.abs(minGrowth), Math.abs(maxGrowth));
+  suggestedMin = -absMax;
+  suggestedMax = absMax;
+}
+
+this.transactionGrowthChart = new Chart(this.percentageChartRef.nativeElement, {
+  type: 'line',
+  data: {
+    labels: percentageData.map(item => item.month || item.year),
+    datasets: [{
+      label: 'Transaction Growth (%)',
+      data: growthValues,
+      fill: false,
+      borderColor: '#00b4d8',
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: {
+        beginAtZero: false, // Allow dynamic scaling
+        suggestedMin: suggestedMin,
+        suggestedMax: suggestedMax,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          }
+        }
+      }
+    }
+  }
+});
+
 
   }
 
