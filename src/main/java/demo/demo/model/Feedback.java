@@ -40,7 +40,7 @@ public class Feedback{
     @Column(name = "is_read", nullable = false, columnDefinition = "boolean default false")
     private boolean isRead;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user; 
 

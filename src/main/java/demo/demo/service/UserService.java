@@ -1072,6 +1072,7 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                         .category(feedback.getCategory())
                         .isRead(feedback.isRead())
                         .status(feedback.getStatus())
+
                         .build())
                 .collect(Collectors.toList());
     }
@@ -1088,8 +1089,10 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                         .message(feedback.getMessage())
                         .category(feedback.getCategory())
                         .isRead(feedback.isRead())
+                        .answer(feedback.getAnswer())
                         .status(feedback.getStatus())
-                        .build())
+                        .build()
+                        )
                 .collect(Collectors.toList());
     }
 

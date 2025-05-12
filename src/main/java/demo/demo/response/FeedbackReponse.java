@@ -18,5 +18,6 @@ public class FeedbackReponse {
     private String category;
     private boolean isRead;
     private String status; 
+    private String answer;
     private Long id;
 }
