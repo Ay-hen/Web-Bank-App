@@ -14,6 +14,7 @@ type Feedback = {
   creationDate: string;
   message: string;
   status: string;
+  
 }
 
 
@@ -76,13 +77,16 @@ export class FeedbackComponent implements OnInit {
   http = inject(HttpClient);
 
   ngOnInit(): void {
-      this.service.getFeedbacks().subscribe((data: Feedback[]) => {
-        this.feedbacks.set(data);
-        console.log(this.feedbacks());
-      });
+      this.fetchFeedbacks();
 
       this.updatedStatus = this.selectedFeedback()?.status || '';
 
+  }
+
+  fetchFeedbacks() {
+    this.service.getFeedbacks().subscribe((data: Feedback[]) => {
+      this.feedbacks.set(data);
+    });
   }
 
 
@@ -167,6 +171,7 @@ fetchUsers(searchTerm: string): void {
     ).subscribe({
       next: (response) => {
         console.log('Reply sent:', response);
+        this.fetchFeedbacks();
         this.message = '';
         this.replySentSuccessfully.set(true); 
       },

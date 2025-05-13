@@ -11,6 +11,7 @@ type Feedback = {
   creationDate: string;
   message: string;
   status: string;
+  answer: string;
 }
 
 @Component({
@@ -172,7 +173,12 @@ export class UserFeedbackComponent implements OnInit {
       openMessagePopup(feedback: Feedback) {
         this.selectedMessage.set(feedback);
       }
+      
+      openAnswerPopup(answer: any) {
+        this.selectedAnswer.set(answer);
+      }
     
+      selectedAnswer = signal<Feedback | null>(null);
       closePopup() {
         this.selectedMessage.set(null);
       }

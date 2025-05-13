@@ -367,7 +367,7 @@
 
 .feedbacks-table-head {
     display: grid;
-    grid-template-columns:  0.5fr 2fr 1.5fr 1.7fr 1fr  ;
+    grid-template-columns:  2fr 1.5fr 1.7fr 1fr 1.7fr   ;
     gap: 1rem;
     
     padding: 1rem 1.5rem;
@@ -408,7 +408,7 @@
 
 .feedback-row {
     display: grid;
-    grid-template-columns: 0.5fr 2.4fr 2fr 1.7fr 1fr ;
+    grid-template-columns: 2fr 1.5fr 1.7fr 1fr 1.7fr ;
     gap: 1rem;
     padding: 0.1rem 1rem;
     background-color: white;

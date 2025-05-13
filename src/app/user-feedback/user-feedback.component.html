@@ -68,18 +68,18 @@
 
             <!-- Table Head -->
             <div class="feedbacks-table-head">
-                <div>ID</div>
                 <div class="amount">Category</div>
                 <div class="number">Date</div>
                 <div class="email">Message</div>
                 <div class="status-head"><span>Status</span></div>
+                <div>Answer</div>
                 
             </div>
 
             <div class="feedbacks-list">
                 @for (feedback of filteredFeedbacks(); track feedback.id) {
                     <div class="feedback-row">
-                        <div>{{ feedback.id }}</div>
+                        
                         <div class="category">{{ feedback.category }}</div>
                         <div class="date">{{ feedback.date }}</div>
                         <div class="message-wrapper">
@@ -112,6 +112,8 @@
                                 <div class="status">{{ feedback.status }}</div>
                             }
                         </div>
+
+                        <div><a class="show-link" (click)="openAnswerPopup(feedback)">show answer</a></div>
                         
                     </div>
                 }
@@ -156,6 +158,15 @@
             <div class="message-popup" (click)="$event.stopPropagation()">
                 <h2>Feedback Message</h2>
                 <p>{{ selectedMessage()?.message }}</p>
+                <button (click)="closePopup()">Close</button>
+            </div>
+        </div>
+    }
+    @if (selectedAnswer()) {
+        <div class="message-popup-overlay" (click)="closePopup()">
+            <div class="message-popup" (click)="$event.stopPropagation()">
+                <h2>Feedback Message</h2>
+                <p>{{ selectedAnswer()?.answer }}</p>
                 <button (click)="closePopup()">Close</button>
             </div>
         </div>
