@@ -304,7 +304,7 @@ p {
 /* Table Head Styles */
 .customers-table-head {
     display: grid;
-    grid-template-columns: 1.30fr 2.4fr 2fr 2fr 1fr 1.75fr 0.1fr 0.1fr;
+    grid-template-columns: 1.2fr 2fr 1.25fr 2.2fr 1fr 1.25fr 0.1fr 0.1fr;
     gap: 2rem;
     padding: 1rem 1.5rem;
     font-weight: 600;
@@ -319,6 +319,7 @@ p {
     font-size: 0.75rem;
     font-weight: 800;
 
+    width: 100%;
     text-align: center;
     justify-items: center;
 

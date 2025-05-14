@@ -37,6 +37,5 @@ export class NotificationComponent {
     }
 
     console.log('Sending Notification:', payload);
-    // You can connect this to a backend API using HttpClient
   }
 }
