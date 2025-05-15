@@ -58,6 +58,7 @@ import demo.demo.model.ActivityTracking;
 import demo.demo.model.Balance;
 import demo.demo.model.Customer;
 import demo.demo.model.Feedback;
+import demo.demo.model.Notification;
 import demo.demo.model.Permission;
 import demo.demo.model.QRCode;
 import demo.demo.model.User;
@@ -71,6 +72,7 @@ import demo.demo.repository.AccountRepo;
 import demo.demo.repository.ActivityTrackingRepo;
 import demo.demo.repository.CustomerRepo;
 import demo.demo.repository.FeedbackRepo;
+import demo.demo.repository.NotificationRepo;
 import demo.demo.response.ActivityReponse;
 
 @Service
@@ -99,6 +101,9 @@ public class UserService {
 
     @Autowired
     private FeedbackRepo feedbackRepo;
+
+    @Autowired
+    private NotificationRepo notificationRepo;
 
     @Autowired
     private BalanceRepo balanceRepo;
@@ -1251,4 +1256,28 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
                         .build())
                 .collect(Collectors.toList()); 
     }
+
+    @Transactional
+    public void sendNotificationToAllUsers(String title, String type, String message) {
+        
+        Notification notification = Notification.builder()
+                .title(title)
+                .type(type)
+                .message(message)
+                .isRead(false)
+                .senderModule("ADMIN")
+                .build();
+
+        
+        List<User> allUsers = userRepo.findAll();
+
+        notification.setUsers(allUsers);
+
+        for (User user : allUsers) {
+            user.getNotifications().add(notification);
+        }
+
+        notificationRepo.save(notification);
+    }
+    
 }
