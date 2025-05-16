@@ -3,6 +3,7 @@ package demo.demo.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,12 +22,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 import demo.demo.model.Notification;
 import demo.demo.model.ScheduledNotification;
 import demo.demo.model.User;
+import demo.demo.model.Customer;
 
 import demo.demo.dto.NotificationRequest;
 
 import demo.demo.repository.NotificationRepo;
 import demo.demo.repository.ScheduledNotificationRepo;
 import demo.demo.repository.UserRepo;
+import demo.demo.repository.CustomerRepo;
 
 import jakarta.annotation.PostConstruct;
 
@@ -36,6 +39,9 @@ public class NotificationService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private CustomerRepo customerRepo;
     
     @Autowired
     private NotificationRepo notificationRepo;
@@ -242,15 +248,16 @@ public class NotificationService {
                 .isRead(false)
                 .build();
 
-            List<User> allUsers = userRepo.findAll();
+            List<Customer> allCustomers = customerRepo.findAll();
+            List<User> customerUsers = new ArrayList<>(allCustomers);
 
             notificationRepo.save(notification);
 
-            for (User user : allUsers) {
+            for (User user : customerUsers) {
                 user.getNotifications().add(notification);
             }
 
-            userRepo.saveAll(allUsers); 
+            userRepo.saveAll(customerUsers); 
             
             logger.info("Notification sent to all users successfully");
         } catch (Exception e) {

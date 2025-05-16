@@ -1280,4 +1280,36 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         notificationRepo.save(notification);
     }
     
+    public List<Map<String, Object>> getAdminUsersWithActivities() {
+        List<User> admins = userRepo.findAll().stream()
+                .filter(user -> "ADMIN".equalsIgnoreCase(user.getRole()))
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (User admin : admins) {
+            Map<String, Object> adminData = new HashMap<>();
+            adminData.put("id", admin.getId());
+            adminData.put("name", admin.getName());
+            adminData.put("email", admin.getEmail());
+            adminData.put("creationDate", admin.getCreationDate());
+
+            List<ActivityTracking> activities = activityTrackingRepo.findByUserId(admin.getId());
+            List<Map<String, Object>> activityList = activities.stream()
+                    .map(activity -> {
+                        Map<String, Object> act = new HashMap<>();
+                        act.put("operationType", activity.getOperationType());
+                        act.put("operationDate", activity.getOperationDate());
+                        act.put("description", activity.getOperationDescription());
+                        return act;
+                    })
+                    .collect(Collectors.toList());
+
+            adminData.put("activities", activityList);
+
+            result.add(adminData);
+        }
+
+        return result;
+    }
 }
