@@ -23,11 +23,11 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @PostMapping("/send-all")
-    public ResponseEntity<Map<String, String>> sendScheduledNotification(@RequestBody NotificationRequest request) {
+    public void sendScheduledNotification(@RequestBody NotificationRequest request) {
         notificationService.scheduleNotification(request);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Notification scheduled.");
-        return ResponseEntity.ok(response);
+        //return ResponseEntity.ok(response);
     }
 
     @PostMapping("/send")

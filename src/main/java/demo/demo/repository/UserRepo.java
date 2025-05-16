@@ -19,4 +19,5 @@ public interface UserRepo extends JpaRepository<User, Long> {
     List<User> findByCreationDateAfter(LocalDateTime date);
     List<User> findByNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(String name, String username);
 
+    
 }
