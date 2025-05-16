@@ -304,4 +304,9 @@ public class MainController {
         userService.respondToFeedback(id, request.getMessage(),request.getStatus());
         return ResponseEntity.ok("Response sent successfully.");
     }
+
+    @GetMapping("/admins")
+    public ResponseEntity<List<Map<String, Object>>> getAllAdmins() {
+        return ResponseEntity.ok(userService.getAdminUsersWithActivities());
+    }
 }
