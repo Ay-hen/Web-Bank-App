@@ -124,21 +124,14 @@ export class NotificationComponent implements OnDestroy {
     
     console.log(`Notification scheduled for ${targetDate.toLocaleString()}`);
     alert(`Notification scheduled for ${targetDate.toLocaleString()}`);
-    
-    // Store the scheduled notification in database for persistence across sessions
-    this.http.post('http://localhost:8181/api/v1/api/notifications/send-all', payload).subscribe({
+
+    this.http.post('http://localhost:8181/api/v1/notifications/send-all', payload).subscribe({
       next: (response) => {
         console.log('Notification scheduled in database:', response);
         this.resetForm();
-      },
-      error: (error) => {
-        console.error('Error scheduling notification:', error);
-        alert('Failed to schedule notification. Please try again.');
       }
     });
-    
-    // For demo purposes, we'll also keep a client-side timer 
-    // (this would be handled server-side in production)
+
     const subscription = timer(timeUntilSend).subscribe(() => {
       this.submitNotification(payload);
     });
