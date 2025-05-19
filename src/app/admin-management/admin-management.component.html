@@ -138,6 +138,7 @@
                     id="newPassword" 
                     type="password" 
                     [value]="newPassword" 
+                    (input)="newPassword = $any($event).target.value"
                     placeholder="Enter new password"
                   />
                 </div>
@@ -148,6 +149,7 @@
                     id="confirmPassword" 
                     type="password" 
                     [value]="confirmPassword" 
+                    (input)="confirmPassword = $any($event).target.value"
                     placeholder="Confirm new password"
                   />
                 </div>
