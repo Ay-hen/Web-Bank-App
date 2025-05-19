@@ -30,6 +30,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.lowagie.text.Document;
@@ -1280,36 +1281,62 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         notificationRepo.save(notification);
     }
     
-    public List<Map<String, Object>> getAdminUsersWithActivities() {
-        List<User> admins = userRepo.findAll().stream()
-                .filter(user -> "ADMIN".equalsIgnoreCase(user.getRole()))
+    public List<Map<String, Object>> getAdminUsersWithActivities(String currentUsername) {
+    List<User> admins = userRepo.findAll().stream()
+            .filter(user -> "ADMIN".equalsIgnoreCase(user.getRole()) && !user.getUsername().equalsIgnoreCase(currentUsername))
+            .collect(Collectors.toList());
+
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    for (User admin : admins) {
+        Map<String, Object> adminData = new HashMap<>();
+        adminData.put("id", admin.getId());
+        adminData.put("name", admin.getName());
+        adminData.put("email", admin.getEmail());
+        adminData.put("creationDate", admin.getCreationDate());
+
+        List<ActivityTracking> activities = activityTrackingRepo.findByUserId(admin.getId());
+        List<Map<String, Object>> activityList = activities.stream()
+                .map(activity -> {
+                    Map<String, Object> act = new HashMap<>();
+                    act.put("operationType", activity.getOperationType());
+                    act.put("operationDate", activity.getOperationDate());
+                    act.put("description", activity.getOperationDescription());
+                    return act;
+                })
                 .collect(Collectors.toList());
 
-        List<Map<String, Object>> result = new ArrayList<>();
+        adminData.put("activities", activityList);
 
-        for (User admin : admins) {
-            Map<String, Object> adminData = new HashMap<>();
-            adminData.put("id", admin.getId());
-            adminData.put("name", admin.getName());
-            adminData.put("email", admin.getEmail());
-            adminData.put("creationDate", admin.getCreationDate());
+        result.add(adminData);
+    }
 
-            List<ActivityTracking> activities = activityTrackingRepo.findByUserId(admin.getId());
-            List<Map<String, Object>> activityList = activities.stream()
-                    .map(activity -> {
-                        Map<String, Object> act = new HashMap<>();
-                        act.put("operationType", activity.getOperationType());
-                        act.put("operationDate", activity.getOperationDate());
-                        act.put("description", activity.getOperationDescription());
-                        return act;
-                    })
-                    .collect(Collectors.toList());
+    return result;
+}
+    public String searchAdminNameById(Long adminId, String username) {
+        User admin = userRepo.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        if ("ADMIN".equalsIgnoreCase(admin.getRole()) && !admin.getUsername().equalsIgnoreCase(username)) {
+            return admin.getName();
+        }
+        return null;
+    }
 
-            adminData.put("activities", activityList);
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-            result.add(adminData);
+    public void changeAdminPassword(Long adminId, String newPassword) {
+        User admin = userRepo.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        if (!"ADMIN".equalsIgnoreCase(admin.getRole())) {
+            throw new RuntimeException("User is not an admin");
         }
 
-        return result;
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        admin.setPassword(encodedPassword);
+        
+        userRepo.save(admin);
     }
+
 }

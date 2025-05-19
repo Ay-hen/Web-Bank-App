@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.FeedbackDTO;
 import demo.demo.dto.FeedbackSendDTO;
-
+import demo.demo.dto.PasswordResetRequest;
 import demo.demo.dto.CustomerResponse;
 import demo.demo.model.Customer;
 import demo.demo.model.User;
@@ -306,7 +306,27 @@ public class MainController {
     }
 
     @GetMapping("/admins")
-    public ResponseEntity<List<Map<String, Object>>> getAllAdmins() {
-        return ResponseEntity.ok(userService.getAdminUsersWithActivities());
+    public ResponseEntity<List<Map<String, Object>>> getAllAdmins(@RequestParam String currentUsername) {
+        return ResponseEntity.ok(userService.getAdminUsersWithActivities(currentUsername));
     }
+
+    @GetMapping("/admin/{id}/name")
+    public ResponseEntity<String> searchAdminNameById(@PathVariable Long id, @RequestParam String username) {
+        String adminName = userService.searchAdminNameById(id, username);
+        if (adminName != null) {
+            return ResponseEntity.ok(adminName);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+        }
+    }
+
+    @PostMapping("/admin/{id}/reset-password")
+    public ResponseEntity<Map<String,Object>> changeAdminPassword(
+            @PathVariable Long id,
+            @RequestBody PasswordResetRequest request) {
+
+        userService.changeAdminPassword(id, request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+    }
+
 }
