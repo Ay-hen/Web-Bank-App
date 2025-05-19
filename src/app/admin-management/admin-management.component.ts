@@ -38,6 +38,8 @@ export class AdminManagementComponent implements OnInit {
 
     http = inject(HttpClient);
     service = inject(ServicesService);
+permAdminId: any;
+showAccessPopup: any;
 
     ngOnInit(){
       const username = this.service.getUsernameFromToken();
@@ -229,6 +231,93 @@ validateAdminId(value: string) {
     this.resetPassword();
     this.showConfirmPopup.set(false);
   }
+
+
+
+
+
+
+
+  permissionSearch = signal('');
+  
+  // Permissions
+  availablePermissions = signal<{ code: string; name: string }[]>([]);
+  filteredPermissions = signal<{ code: string; name: string }[]>([]);
+
+  
+  selectedPermissions = signal<string[]>([]);
+
+  adminAccessId = '';
+adminAccessName = signal('');
+
+showDropdown = signal(false);
+
+filterPermissionsSearch(searchTerm: string): void {
+    const term = searchTerm.toLowerCase().trim();
+    this.permissionSearch.set(term);
+  
+    const selected = this.selectedPermissions();
+  
+    this.filteredPermissions.set(
+      this.availablePermissions().filter(p =>
+        p.name.toLowerCase().includes(term) && !selected.includes(p.code)
+      )
+    );
+  }
+  
+  
+  addPermission(name: string): void {
+    if (!this.selectedPermissions().includes(name)) {
+      this.selectedPermissions.update(perms => [...perms, name]);
+  
+      this.filteredPermissions.update(perms => 
+        perms.filter(p => p.name !== name)
+      );
+    }
+  }
+  
+  
+  removePermission(code: string): void {
+    this.selectedPermissions.update(perms =>
+      perms.filter(p => p !== code)
+    );
+  
+    const permission = this.availablePermissions().find(p => p.code === code);
+    if (permission) {
+      this.filteredPermissions.update(perms => [...perms, permission]);
+    }
+  }
+
+toggleDropdown() {
+  this.showDropdown.set(!this.showDropdown());
+}
+
+validateAccessId(id: string) {
+  this.adminAccessId = id;
+}
+
+fetchAccessAdminById(id: string) {
+  // Dummy logic for now
+  if (id === '1') {
+    this.adminAccessName.set('John Doe');
+  } else {
+    this.adminAccessName.set('');
+  }
+}
+
+isSelected(code: string): boolean {
+  return this.selectedPermissions().includes(code);
+}
+
+togglePermission(code: string) {
+  const current = this.selectedPermissions();
+  if (current.includes(code)) {
+    this.selectedPermissions.set(current.filter(p => p !== code));
+  } else {
+    this.selectedPermissions.set([...current, code]);
+  }
+}
+
 
 
 }

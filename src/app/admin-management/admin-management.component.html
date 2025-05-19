@@ -166,11 +166,129 @@
 
 
         @case ('tab3') {
+            <div class="reset-permission-form">
+                
+                <h2>Reset Admin Access</h2>
 
+                <!-- Admin ID Input -->
+                <div class="form-group">
+                <label for="adminId">Admin ID</label>
+                <input 
+                    id="adminId" 
+                    type="number"
+                    [value]="adminAccessId"
+                    (input)="validateAccessId($any($event).target.value)"
+                    (blur)="fetchAccessAdminById($any($event).target.value)"
+                    placeholder="Enter Admin ID"
+                    min="0"
+                />
+                </div>
+
+            <!-- Admin Name Display -->
+            <div class="form-group">
+            <label for="adminName">Admin Name</label>
+            <input 
+                id="adminName" 
+                type="text" 
+                [value]="adminAccessName()" 
+                disabled 
+                placeholder=""
+            />
+            </div>
+
+            <div class="multi-select-permissions">
+                                <div class="dropdown-header" (click)="toggleDropdown()">
+                                    @if (selectedPermissions().length > 0) {
+                                        <span class="selected-count" >
+                                            {{selectedPermissions().length}} selected
+                                        </span>
+                                    }
+
+                                    @if (selectedPermissions().length === 0) {
+                                        <span class="placeholder">
+                                            Select permissions...
+                                        </span>
+                                    }
+
+                                    <span class="dropdown-arrow"> + </span>
+                                </div>
+
+                            @if (showDropdown()) {
+                                <div class="dropdown-content" (click)="$event.stopPropagation()">
+                                    <!-- Search input -->
+                                    <div class="search-container">
+                                    <input
+                                        type="text"
+                                        placeholder="Search permissions..."
+                                        (input)="filterPermissionsSearch($any($event).target.value)"
+                                        class="search-input"
+                                        [value]="permissionSearch()"
+                                        autofocus
+                                    >
+                                    </div>
+                            
+                                    <!-- Selected permissions chips -->
+                                    @if (selectedPermissions().length > 0) {
+                                    <div class="selected-permissions">
+                                        @for (perm of selectedPermissions(); track perm) {
+                                        <div class="permission-chip">
+                                            <span>{{perm}}</span>
+                                            <button
+                                            class="remove-chip"
+                                            (click)="removePermission(perm); $event.stopPropagation()"
+                                            aria-label="Remove permission"
+                                            >
+                                            &times;
+                                            </button>
+                                        </div>
+                                        }
+                                    </div>
+                                    }
+                            
+                                    <!-- Permissions list -->
+                                    <div class="options-container">
+                                        @if (filteredPermissions().length > 0) {
+                                            @for (perm of filteredPermissions(); track perm) {
+                                            <div class="option"
+                                                (click)="addPermission(perm.name); $event.stopPropagation()"
+                                            >
+                                                <span class="checkbox">
+                                                @if (isSelected(perm.code)) { }
+                                                </span>
+                                                <span class="option-label">{{perm.name}}</span>
+                                            </div>
+                                            }
+                            } @else {
+                                <div class="no-results">
+                                @if (permissionSearch()) {
+                                    No permissions found for "{{permissionSearch()}}"
+                            } @else {
+                                No permissions available
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
         }
+    </div>
+
+    <!-- Confirm Button -->
+    <button 
+      class="change-btn" 
+      [disabled]="!adminAccessName() || selectedPermissions().length === 0"
+      (click)="showAccessPopup.set(true)">
+      Change Access
+    </button>
+  </div>
+}
 
     }
 
+
+
+
+
+    
     @if (selectedMessage()) {
         <div class="message-popup-overlay" (click)="closePopup()">
             <div class="message-popup" (click)="$event.stopPropagation()">
@@ -235,7 +353,9 @@
           </div>
         </div>
     }
-    
+
+
+
 
 
 </div>
