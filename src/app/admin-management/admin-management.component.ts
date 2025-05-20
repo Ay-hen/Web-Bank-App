@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import { HttpClient } from '@angular/common/http';
 import { ServicesService } from '../services/services.service';
@@ -38,8 +38,15 @@ export class AdminManagementComponent implements OnInit {
 
     http = inject(HttpClient);
     service = inject(ServicesService);
-permAdminId: any;
-showAccessPopup: any;
+    permAdminId: any;
+    showAccessPopup: any;
+
+    // Permissions management
+    permissionSearch = signal('');
+    availablePermissions = signal<{ code: string; name: string }[]>([]);
+    filteredPermissions = signal<{ code: string; name: string }[]>([]);
+    selectedPermissions = signal<string[]>([]);
+    allPermissions = signal<{ code: string; name: string }[]>([]);
 
     ngOnInit(){
       const username = this.service.getUsernameFromToken();
@@ -50,12 +57,36 @@ showAccessPopup: any;
         (error) => {
           console.error('Error fetching admins:', error);
         }
-      )
+      );
+
+      this.http.get<{ code: string; name: string }[]>('http://localhost:8181/api/v1/permissions').subscribe({
+        next: (permissions) => {
+          this.availablePermissions.set(permissions);
+          this.allPermissions.set([...permissions]); // Store all permissions for reference
+          this.updateFilteredPermissions();
+          console.log('Permissions:', permissions);
+        },
+        error: (err) => {
+          console.error('Failed to load permissions:', err);
+        }
+      });
+    }
+
+    updateFilteredPermissions(): void {
+      const searchTerm = this.permissionSearch().toLowerCase().trim();
+      const selectedCodes = this.selectedPermissions();
+      
+      this.filteredPermissions.set(
+        this.allPermissions().filter(p => 
+          p.name.toLowerCase().includes(searchTerm) &&
+          !selectedCodes.includes(p.name)
+        )
+      );
     }
 
     admins = signal<any[]>([]);
 
-  filteredAdmins = computed(() => {
+    filteredAdmins = computed(() => {
       const query = this.searchQuery().toLowerCase();
       const sort = this.sortBy();
       const page = this.currentPage();
@@ -83,7 +114,6 @@ showAccessPopup: any;
       const startIndex = page * perPage;
       return list.slice(startIndex, startIndex + perPage);
     });
-    
   
     goToNextPage() {
       const maxPage = Math.floor(this.admins().length / this.itemsPerPage);
@@ -101,7 +131,6 @@ showAccessPopup: any;
     totalPages(): number {
       return Math.ceil(this.admins().length / this.itemsPerPage);
     }
-    
     
     hasPreviousPage(): boolean {
       return this.currentPage() > 0;
@@ -125,199 +154,210 @@ showAccessPopup: any;
 
     selectedMessage = signal<Admin | null>(null);
     
-        openMessagePopup(admin: Admin) {
-          this.selectedMessage.set(admin);
-        }
+    openMessagePopup(admin: Admin) {
+      this.selectedMessage.set(admin);
+    }
 
-  closePopup() {
-          this.isClosing = true;
-    setTimeout(() => {
+    closePopup() {
+      this.isClosing = true;
+      setTimeout(() => {
         this.selectedMessage.set(null);
         this.isClosing = false;
-    }, 300); 
-          this.selectedMessage.set(null);
+      }, 300); 
     }
 
-isClosing = false;
-
-
-
+    isClosing = false;
 
     currentActivitiesPage = signal(0);
-activitiesPerPage = 3;
+    activitiesPerPage = 3;
 
-paginatedActivities = computed(() => {
-  const start = this.currentActivitiesPage() * this.activitiesPerPage;
-  return this.selectedMessage()?.activities.slice(start, start + this.activitiesPerPage) || [];
-});
+    paginatedActivities = computed(() => {
+      const start = this.currentActivitiesPage() * this.activitiesPerPage;
+      return this.selectedMessage()?.activities.slice(start, start + this.activitiesPerPage) || [];
+    });
 
-totalActivitiesPages = computed(() => {
-  return Math.ceil((this.selectedMessage()?.activities.length || 0) / this.activitiesPerPage);
-});
+    totalActivitiesPages = computed(() => {
+      return Math.ceil((this.selectedMessage()?.activities.length || 0) / this.activitiesPerPage);
+    });
 
-nextActivitiesPage() {
-  if (this.currentActivitiesPage() < this.totalActivitiesPages() - 1) {
-    this.currentActivitiesPage.update(p => p + 1);
-  }
-}
-
-prevActivitiesPage() {
-  if (this.currentActivitiesPage() > 0) {
-    this.currentActivitiesPage.update(p => p - 1);
-  }
-}
-
-
-/* ******************************************************** Tab2 ******************************************************** */
-
-  adminId: number | null = null;
-  newPassword = '';
-  confirmPassword = '';
-  adminName = signal('');
-  errorMessage = signal('');
-
-  fetchAdminById(adminId : number) {
-    const username = this.service.getUsernameFromToken();
-    this.http.get(`http://localhost:8181/api/v1/admin/${adminId}/name?username=${username}`).subscribe();
-    const id = Number(adminId);
-    const found = this.admins().find(admin => admin.id === id);
-    console.log('Found admin:', found);
-    if (found) {
-      this.adminName.set(found.name);
-      this.errorMessage.set('');
-    } else {
-      this.adminName.set('');
-      this.errorMessage.set('Admin with this ID does not exist.');
-    }
-  }
-
-  resetPassword() {
-    this.http.post(`http://localhost:8181/api/v1/admin/${this.adminId}/reset-password`, {
-      newPassword: this.newPassword
-    }).subscribe(
-      response => {
-        console.log('Password reset successful:', response);
-      },
-    
-      error => {
-        console.error('Error resetting password:', error);
-        this.errorMessage.set('Failed to reset password. Please try again.');
+    nextActivitiesPage() {
+      if (this.currentActivitiesPage() < this.totalActivitiesPages() - 1) {
+        this.currentActivitiesPage.update(p => p + 1);
       }
-    );
-
-    this.adminId = null;
-    this.newPassword = '';
-    this.confirmPassword = '';
-    this.adminName.set('');
-    this.errorMessage.set('');
-  }
-
-  // In your component class
-
-validateAdminId(value: string) {
-    const numValue = Number(value);
-    if (numValue > 0) {
-        this.adminId=numValue;
-    } else {
-        this.adminId = 0;
     }
-}
 
+    prevActivitiesPage() {
+      if (this.currentActivitiesPage() > 0) {
+        this.currentActivitiesPage.update(p => p - 1);
+      }
+    }
 
-  // Popup logic
-  showConfirmPopup = signal(false);
+    /* ******************************************************** Tab2 ******************************************************** */
 
-  confirmReset() {
-    this.resetPassword();
-    this.showConfirmPopup.set(false);
-  }
+    adminId: number | null = null;
+    newPassword = '';
+    confirmPassword = '';
+    adminName = signal('');
+    errorMessage = signal('');
 
+    fetchAdminById(adminId: number) {
+      const username = this.service.getUsernameFromToken();
+      this.http.get(`http://localhost:8181/api/v1/admin/${adminId}/name?username=${username}`).subscribe();
+      const id = Number(adminId);
+      const found = this.admins().find(admin => admin.id === id);
+      console.log('Found admin:', found);
+      if (found) {
+        this.adminName.set(found.name);
+        this.errorMessage.set('');
+      } else {
+        this.adminName.set('');
+        this.errorMessage.set('Admin with this ID does not exist.');
+      }
+    }
 
+    resetPassword() {
+      this.http.post(`http://localhost:8181/api/v1/admin/${this.adminId}/reset-password`, {
+        newPassword: this.newPassword
+      }).subscribe(
+        response => {
+          console.log('Password reset successful:', response);
+        },
+      
+        error => {
+          console.error('Error resetting password:', error);
+          this.errorMessage.set('Failed to reset password. Please try again.');
+        }
+      );
 
+      this.adminId = null;
+      this.newPassword = '';
+      this.confirmPassword = '';
+      this.adminName.set('');
+      this.errorMessage.set('');
+    }
 
+    validateAdminId(value: string) {
+      const numValue = Number(value);
+      if (numValue > 0) {
+          this.adminId = numValue;
+      } else {
+          this.adminId = 0;
+      }
+    }
 
+    // Popup logic
+    showConfirmPopup = signal(false);
 
+    confirmReset() {
+      this.resetPassword();
+      this.showConfirmPopup.set(false);
+    }
 
-  permissionSearch = signal('');
-  
-  // Permissions
-  availablePermissions = signal<{ code: string; name: string }[]>([]);
-  filteredPermissions = signal<{ code: string; name: string }[]>([]);
+    adminAccessId = '';
+    adminAccessName = signal('');
+    showDropdown = signal(false);
 
-  
-  selectedPermissions = signal<string[]>([]);
+    // Filter permissions based on search term
+    filterPermissionsSearch(searchTerm: string): void {
+      this.permissionSearch.set(searchTerm);
+      this.updateFilteredPermissions();
+    }
+    
+    // Add permission to selected list
+    addPermission(code: string): void {
+      if (!this.selectedPermissions().includes(code)) {
+        this.selectedPermissions.update(perms => [...perms, code]);
+        // Update filtered permissions to remove the newly selected permission
+        this.updateFilteredPermissions();
+      }
+    }
+    
+    // Remove permission from selected list
+    removePermission(code: string): void {
+      this.selectedPermissions.update(perms =>
+        perms.filter(p => p !== code)
+      );
+      // Update filtered permissions to add back the removed permission
+      this.updateFilteredPermissions();
+    }
 
-  adminAccessId = '';
-adminAccessName = signal('');
+    toggleDropdown() {
+      this.showDropdown.set(!this.showDropdown());
+    }
 
-showDropdown = signal(false);
+    validateAccessId(id: string) {
+      this.adminAccessId = id;
+    }
 
-filterPermissionsSearch(searchTerm: string): void {
-    const term = searchTerm.toLowerCase().trim();
-    this.permissionSearch.set(term);
-  
-    const selected = this.selectedPermissions();
-  
-    this.filteredPermissions.set(
-      this.availablePermissions().filter(p =>
-        p.name.toLowerCase().includes(term) && !selected.includes(p.code)
-      )
-    );
-  }
-  
-  
-  addPermission(name: string): void {
-    if (!this.selectedPermissions().includes(name)) {
-      this.selectedPermissions.update(perms => [...perms, name]);
-  
-      this.filteredPermissions.update(perms => 
-        perms.filter(p => p.name !== name)
+    // Fetch admin and their permissions
+    fetchAccessAdminById(id: string) {
+      this.http.get(`http://localhost:8181/api/v1/admin/${id}`).subscribe(
+        (response: any) => {
+          console.log('Fetched admin:', response);
+          this.adminAccessName.set(response.name);
+
+          // Set the selected permissions from the fetched admin
+          if (response.permissions && Array.isArray(response.permissions)) {
+            this.selectedPermissions.set(response.permissions);
+            // Update filtered permissions with current search term
+            this.updateFilteredPermissions();
+          }
+        },
+        (error) => {
+          console.error('Error fetching admin:', error);
+          this.adminAccessName.set('');
+          this.selectedPermissions.set([]);
+        }
       );
     }
-  }
-  
-  
-  removePermission(code: string): void {
-    this.selectedPermissions.update(perms =>
-      perms.filter(p => p !== code)
-    );
-  
-    const permission = this.availablePermissions().find(p => p.code === code);
-    if (permission) {
-      this.filteredPermissions.update(perms => [...perms, permission]);
+
+    // Check if a permission is currently selected
+    isSelected(code: string): boolean {
+      return this.selectedPermissions().includes(code);
     }
-  }
 
-toggleDropdown() {
-  this.showDropdown.set(!this.showDropdown());
-}
+    // Toggle selection status of a permission
+    togglePermission(code: string) {
+      const current = this.selectedPermissions();
+      if (current.includes(code)) {
+        this.selectedPermissions.set(current.filter(p => p !== code));
+      } else {
+        this.selectedPermissions.set([...current, code]);
+      }
+      // Update filtered permissions after toggling
+      this.updateFilteredPermissions();
+    }
 
-validateAccessId(id: string) {
-  this.adminAccessId = id;
-}
+    // Save permissions changes to backend
+    savePermissions() {
+      if (!this.adminAccessId) {
+        console.error('No admin ID provided');
+        return;
+      }
+      
+      this.http.post(`http://localhost:8181/api/v1/admin/${this.adminAccessId}/permissions`, {
+        permissions: this.selectedPermissions()
+      }).subscribe(
+        (response) => {
+          console.log('Permissions updated successfully:', response);
+          // You might want to add success feedback here
+        },
+        (error) => {
+          console.error('Failed to update permissions:', error);
+          // You might want to add error feedback here
+        }
+      );
+    }
 
-fetchAccessAdminById(id: string) {
-  // Dummy logic for now
-  if (id === '1') {
-    this.adminAccessName.set('John Doe');
-  } else {
-    this.adminAccessName.set('');
-  }
-}
+    @HostListener('document:click', ['$event'])
+    onDocumentClick(event: MouseEvent): void {
+      const target = event.target as HTMLElement;
 
-isSelected(code: string): boolean {
-  return this.selectedPermissions().includes(code);
-}
-
-togglePermission(code: string) {
-  const current = this.selectedPermissions();
-  if (current.includes(code)) {
-    this.selectedPermissions.set(current.filter(p => p !== code));
-  } else {
-    this.selectedPermissions.set([...current, code]);
-  }
-}
-
-
-
+      if (!target.closest('.dropdown-header')) {
+        this.showDropdown.set(false);
+      }
+      if (!target.closest('.report-popover')) {
+        this.showReportPopover.set(false);
+      }
+    }
 }
