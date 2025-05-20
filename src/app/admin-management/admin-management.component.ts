@@ -365,6 +365,38 @@ export class AdminManagementComponent implements OnInit {
         this.showReportPopover.set(false);
       }
     }
+
+  notification = signal<{ message: string, type: 'success' | 'error' } | null>(null);
+  
+  private showNotification(message: string, type: 'success' | 'error') {
+    this.notification.set(null);
+    
+    setTimeout(() => {
+      this.notification.set({ message, type });
+      this.resetForm();
+      setTimeout(() => {
+        const notificationElement = document.querySelector('.notification-popup');
+        if (notificationElement) {
+          notificationElement.classList.add('hiding');
+  
+          setTimeout(() => {
+            this.notification.set(null);
+          }, 300); 
+        } else {
+          this.notification.set(null);
+        }
+      }, 4000);
+    }, 100);
+  }
+
+  resetForm() {
+    this.adminAccessId = '';
+    this.adminAccessName.set('');
+    this.selectedPermissions.set([]);
+    this.permissionSearch.set('');
+    this.fetchPermissions();
+  }
+
   saveChanges(){
     const request = {
       id : this.adminAccessId,
@@ -374,14 +406,11 @@ export class AdminManagementComponent implements OnInit {
     const url = `http://localhost:8181/api/v1/admin/reset-permissions`;
     this.http.post(url, request).subscribe({
       next: (response) => {
-        console.log('Permissions updated successfully:', response);
-        this.adminAccessId = '';
-        this.adminAccessName.set('');
-        this.selectedPermissions.set([]);
+        this.showNotification('Permissions updated successfully', 'success');
+        this.resetForm();
       },
       error: (error) => {
-        console.error('Failed to update permissions:', error);
-        // You might want to add error feedback here
+        this.showNotification("Failed to update permissions", 'error');
       }
     });
   }

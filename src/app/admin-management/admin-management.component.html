@@ -355,7 +355,14 @@
     }
 
 
-    
+    @if (notification()) {
+        <div class="notification-popup" [class]="notification()?.type">
+            <div class="notification-content">
+                <span class="notification-message">{{ notification()?.message }}</span>
+                <button class="notification-close" (click)="notification.set(null)">×</button>
+            </div>
+        </div>
+    }
 
 
 
