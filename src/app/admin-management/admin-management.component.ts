@@ -2,6 +2,7 @@ import { Component, computed, HostListener, inject, OnInit, signal } from '@angu
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import { HttpClient } from '@angular/common/http';
 import { ServicesService } from '../services/services.service';
+import { identity } from 'rxjs';
 
 
 type Admin={
@@ -50,19 +51,23 @@ export class AdminManagementComponent implements OnInit {
 
     ngOnInit(){
       const username = this.service.getUsernameFromToken();
-      this.http.get(`http://localhost:8181/api/v1/admins?currentUsername=${username}`).subscribe(
-        (response: any) => {
+      this.http.get(`http://localhost:8181/api/v1/admins?currentUsername=${username}`).subscribe({
+        next : (response: any) => {
           this.admins.set(response);
         },
-        (error) => {
+        error : (error) => {
           console.error('Error fetching admins:', error);
-        }
+        }}
       );
 
+      this.fetchPermissions();
+    }
+
+    fetchPermissions(){
       this.http.get<{ code: string; name: string }[]>('http://localhost:8181/api/v1/permissions').subscribe({
         next: (permissions) => {
           this.availablePermissions.set(permissions);
-          this.allPermissions.set([...permissions]); // Store all permissions for reference
+          this.allPermissions.set([...permissions]); 
           this.updateFilteredPermissions();
           console.log('Permissions:', permissions);
         },
@@ -360,4 +365,29 @@ export class AdminManagementComponent implements OnInit {
         this.showReportPopover.set(false);
       }
     }
+  saveChanges(){
+    const request = {
+      id : this.adminAccessId,
+      permissions : this.selectedPermissions()
+    }
+
+    const url = `http://localhost:8181/api/v1/admin/reset-permissions`;
+    this.http.post(url, request).subscribe({
+      next: (response) => {
+        console.log('Permissions updated successfully:', response);
+        this.adminAccessId = '';
+        this.adminAccessName.set('');
+        this.selectedPermissions.set([]);
+      },
+      error: (error) => {
+        console.error('Failed to update permissions:', error);
+        // You might want to add error feedback here
+      }
+    });
+  }
+
+
+  confirmResetAccess(){
+
+  }
 }

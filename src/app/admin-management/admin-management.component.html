@@ -276,7 +276,7 @@
     <button 
         class="change-btn" 
         [disabled]="!adminAccessName() || selectedPermissions().length === 0"
-        (click)="showAccessPopup.set(true)">
+        (click)="saveChanges()">
         Change Access
     </button>
   </div>
@@ -355,6 +355,7 @@
     }
 
 
+    
 
 
 
