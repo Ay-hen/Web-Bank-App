@@ -1293,14 +1293,14 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         adminData.put("id", admin.getId());
         adminData.put("name", admin.getName());
         adminData.put("email", admin.getEmail());
-        adminData.put("creationDate", admin.getCreationDate());
+        adminData.put("creationDate", admin.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
 
         List<ActivityTracking> activities = activityTrackingRepo.findByUserId(admin.getId());
         List<Map<String, Object>> activityList = activities.stream()
                 .map(activity -> {
                     Map<String, Object> act = new HashMap<>();
                     act.put("operationType", activity.getOperationType());
-                    act.put("operationDate", activity.getOperationDate());
+                    act.put("operationDate", activity.getOperationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a") ));
                     act.put("description", activity.getOperationDescription());
                     return act;
                 })
@@ -1337,6 +1337,23 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         admin.setPassword(encodedPassword);
         
         userRepo.save(admin);
+    }
+
+    public Map<String, Object> getAdminNameAndPermissions(Long adminId) {
+        User admin = userRepo.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        if (!"ADMIN".equalsIgnoreCase(admin.getRole())) {
+            throw new RuntimeException("User is not an admin");
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("name", admin.getName());
+        List<String> permissions = admin.getPermissions() != null
+                ? admin.getPermissions().stream()
+                    .map(Permission::getPermission)
+                    .collect(Collectors.toList())
+                : new ArrayList<>();
+        result.put("permissions", permissions);
+        return result;
     }
 
 }

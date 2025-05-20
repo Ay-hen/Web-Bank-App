@@ -329,4 +329,9 @@ public class MainController {
         return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
     }
 
+    @GetMapping("/admin/{id}")
+    public ResponseEntity<Map<String, Object>> getAdminDetails(@PathVariable Long id) {
+        Map<String, Object> adminDetails = userService.getAdminNameAndPermissions(id);
+        return ResponseEntity.ok(adminDetails);
+    }
 }
