@@ -43,7 +43,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 import demo.demo.auth.PermissionResponse;
-
+import demo.demo.dto.ChangePermissions;
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.CustomerResponse;
 import demo.demo.dto.FeedbackDTO;
@@ -1018,8 +1018,8 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         addPermission(permissions, "VIEW_DASHBOARD", "View Dashboard");
         addPermission(permissions, "MANAGE_USERS", "Manage Users");
         addPermission(permissions, "MANAGE_FEEDBACK", "Manage Feedback");
-        addPermission(permissions, "MANAGE_TRANSACTIONS", "Manage Transactions");
-        addPermission(permissions, "MANAGE_NOTIFICATIONS", "Manage Notifications");
+        addPermission(permissions, "MANAGE_TRANSACTION", "Manage Transaction");
+        addPermission(permissions, "MANAGE_NOTIFICATION", "Manage Notification");
         addPermission(permissions, "MANAGE_ADMIN", "Manage Admin");
         
         return permissions;
@@ -1339,6 +1339,7 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         userRepo.save(admin);
     }
 
+    
     public Map<String, Object> getAdminNameAndPermissions(Long adminId) {
         User admin = userRepo.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
@@ -1355,5 +1356,35 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         result.put("permissions", permissions);
         return result;
     }
+
+    @Transactional
+    public void updateAdminPermissions(ChangePermissions changePermission) {
+        Long adminId = changePermission.getId();
+        List<String> newPermissions = changePermission.getPermissions();
+
+        User admin = userRepo.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        if (!"ADMIN".equalsIgnoreCase(admin.getRole())) {
+            throw new RuntimeException("User is not an admin");
+        }
+
+        permissionRepo.deleteByUserId(adminId);
+
+        List<Permission> updatedPermissions = newPermissions.stream()
+                .map(permissionName -> Permission.builder()
+                        .permission(permissionName)
+                        .user(admin)
+                        .build())
+                .collect(Collectors.toList());
+        
+        permissionRepo.saveAll(updatedPermissions);
+
+        admin.getPermissions().clear(); 
+        admin.getPermissions().addAll(updatedPermissions);
+
+        userRepo.save(admin);
+    }
+
 
 }

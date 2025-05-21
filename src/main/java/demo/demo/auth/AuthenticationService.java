@@ -73,7 +73,6 @@ public class AuthenticationService {
                 user.setPermissions(permissionEntities); 
             }
     
-            // Return a proper success response with 200 status
             return ResponseEntity.ok().body("User created successfully");
     
         } catch(Exception e) {

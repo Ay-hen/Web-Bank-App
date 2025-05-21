@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import demo.demo.dto.ChangePermissions;
 import demo.demo.dto.CustomerDTO;
 import demo.demo.dto.FeedbackDTO;
 import demo.demo.dto.FeedbackSendDTO;
@@ -333,5 +334,11 @@ public class MainController {
     public ResponseEntity<Map<String, Object>> getAdminDetails(@PathVariable Long id) {
         Map<String, Object> adminDetails = userService.getAdminNameAndPermissions(id);
         return ResponseEntity.ok(adminDetails);
+    }
+
+    @PostMapping("/admin/reset-permissions")
+    public ResponseEntity<Map<String, Object>> resetAdminPermissions(@RequestBody ChangePermissions permissions) {
+        userService.updateAdminPermissions(permissions);
+        return ResponseEntity.ok(Map.of("message", "Admin permissions reset successfully"));
     }
 }
