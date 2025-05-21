@@ -1,0 +1,104 @@
+.container {
+  margin-left: 280px;
+  margin-top: 0.57rem;
+  margin-right: 30px;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  height: auto;
+  display: flex;
+  justify-content: center; /* center horizontally */
+  align-items: center;     /* center vertically (if height allows) */
+  text-align: center;
+}
+
+/* Center the .info content and limit max width for readability */
+.info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
+  width: 100%;
+}
+
+.user-info {
+  width: 100%;
+  background-color: #f5f5f5;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  row-gap: 1rem;
+  column-gap: 0.5rem;
+}
+
+.user-info h3 {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  color: #444;
+}
+
+.user-info span {
+  text-align: left;
+  font-weight: 400;
+  color: #333;
+  display: inline-block;
+}
+
+/* Language Section */
+.language {
+  width: 100%;
+  padding-top: 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid #ccc;
+}
+
+.language h3 {
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.language-select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.language-select:hover,
+.language-select:focus {
+  border-color: #00c07f;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  app-dashboard-navbar,
+  app-user-dashboard {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .container {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1rem;
+    padding: 1rem;
+  }
+
+  .user-info {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .user-info h3 {
+    text-align: left;
+  }
+}

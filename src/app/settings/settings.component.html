@@ -3,3 +3,22 @@
 } @else {
     <app-dashboard-navbar></app-dashboard-navbar>
 }
+
+<div class="container">
+    <div class="info">
+        <h1>Settings</h1>
+        <div class="user-info">
+            <h3 class="user-name-h3">Name : </h3><span class="user-name"> {{ user.name }}</span>
+            <h3 class="user-email-h3">Email : </h3><span class="user-email"> {{ user.email }}</span>
+            <h3 class="user-role-h3">Role : </h3><span class="user-role"> {{ user.role }}</span>
+            <h3 class="user-status-h3">Status : </h3><span class="user-status"> {{ user.status }}</span>
+            <h3 class="user-created-h3">Created At : </h3><span class="user-created"> {{ user.createdAt }}</span>
+        </div>
+        <div class="language">
+            <h3 class="language-h3">Language : </h3>
+            <select class="language-select" [value]="selectedLanguage" (change)="onLanguageChange($event)">
+                @for(language of languages ; track language){<option  [value]="language">{{ language }}</option>}
+            </select>
+        </div>
+    </div>
+</div>
