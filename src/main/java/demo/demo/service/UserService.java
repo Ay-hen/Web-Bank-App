@@ -1393,4 +1393,17 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
     }
 
 
+    public Map<String, Object> getUserDetailsByUsername(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("name", user.getName());
+        details.put("email", user.getEmail());
+        details.put("status", user.isBlocked() ? "Blocked" : "Active");
+        details.put("role", user.getRole());
+        details.put("createdDate", user.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+        return details;
+    }
+
 }

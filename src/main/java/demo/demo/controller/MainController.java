@@ -342,4 +342,10 @@ public class MainController {
         userService.updateAdminPermissions(permissions);
         return ResponseEntity.ok(Map.of("message", "Admin permissions reset successfully"));
     }
+
+    @GetMapping("/user-details")
+    public ResponseEntity<Map<String, Object>> getUserDetails(@RequestParam String username) {
+        Map<String, Object> userDetails = userService.getUserDetailsByUsername(username);
+        return ResponseEntity.ok(userDetails);
+    }
 }
