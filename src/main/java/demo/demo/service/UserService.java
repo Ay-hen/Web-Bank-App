@@ -1340,22 +1340,28 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
     }
 
     
-    public Map<String, Object> getAdminNameAndPermissions(Long adminId) {
-        User admin = userRepo.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
-        if (!"ADMIN".equalsIgnoreCase(admin.getRole())) {
-            throw new RuntimeException("User is not an admin");
-        }
-        Map<String, Object> result = new HashMap<>();
-        result.put("name", admin.getName());
-        List<String> permissions = admin.getPermissions() != null
-                ? admin.getPermissions().stream()
-                    .map(Permission::getPermission)
-                    .collect(Collectors.toList())
-                : new ArrayList<>();
-        result.put("permissions", permissions);
-        return result;
+    public Map<String, Object> getAdminNameAndPermissions(Long adminId, String username) {
+    User admin = userRepo.findById(adminId)
+            .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+    // Exclude if the username matches the admin's username
+    if (!"ADMIN".equalsIgnoreCase(admin.getRole()) || admin.getUsername().equalsIgnoreCase(username)) {
+        throw new RuntimeException("Unauthorized access or trying to fetch self");
     }
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("name", admin.getName());
+
+    List<String> permissions = admin.getPermissions() != null
+            ? admin.getPermissions().stream()
+                .map(Permission::getPermission)
+                .collect(Collectors.toList())
+            : new ArrayList<>();
+
+    result.put("permissions", permissions);
+    return result;
+}
+
 
     @Transactional
     public void updateAdminPermissions(ChangePermissions changePermission) {

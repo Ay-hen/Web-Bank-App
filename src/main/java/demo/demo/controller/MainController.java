@@ -331,8 +331,9 @@ public class MainController {
     }
 
     @GetMapping("/admin/{id}")
-    public ResponseEntity<Map<String, Object>> getAdminDetails(@PathVariable Long id) {
-        Map<String, Object> adminDetails = userService.getAdminNameAndPermissions(id);
+    public ResponseEntity<Map<String, Object>> getAdminDetails(@PathVariable Long id, @RequestParam String username) {
+        System.out.println("Fetching admin details for Username: " + username);
+        Map<String, Object> adminDetails = userService.getAdminNameAndPermissions(id, username);
         return ResponseEntity.ok(adminDetails);
     }
 
