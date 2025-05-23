@@ -1,13 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { DashboardNavbarComponent } from "../dashboard-navbar/dashboard-navbar.component";
 import { UserDashboardComponent } from "../user-dashboard/user-dashboard.component";
+import { ServicesService } from '../services/services.service';
+import { HttpClient } from '@angular/common/http';
 
 type User = {
     name: string,
     email: string;
     role: string;
     status: string;
-    createdAt: string;
+    createdDate: string;
   }
 
 @Component({
@@ -20,13 +22,10 @@ type User = {
 export class SettingsComponent implements OnInit {
   role = localStorage.getItem('role')?.toUpperCase();
 
-  user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: this.role,
-    status: 'Active',
-    createdAt: new Date().toISOString()
-  };
+  user : any;
+
+  service = inject(ServicesService);
+  http = inject(HttpClient);
 
   languages = ['English', 'French', 'German'];
   selectedLanguage = localStorage.getItem('language') || this.languages[0];
@@ -34,6 +33,16 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     // Load language from storage if available
     const lang = localStorage.getItem('language');
+    const username = this.service.getUsernameFromToken();
+
+    this.http.get(`http://localhost:8181/api/v1/user-details?username=${username}`).subscribe({
+      next: (response: any) => {
+        this.user = response;
+        console.log(this.user);
+        console.log("response from backend", response);
+      }
+    });
+
     if (lang && this.languages.includes(lang)) {
       this.selectedLanguage = lang;
     }
@@ -42,7 +51,5 @@ export class SettingsComponent implements OnInit {
   onLanguageChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.selectedLanguage = select.value;
-    localStorage.setItem('language', this.selectedLanguage);
-    // Optional: trigger translation logic here
   }
 }

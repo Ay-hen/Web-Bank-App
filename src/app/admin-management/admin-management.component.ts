@@ -295,26 +295,32 @@ export class AdminManagementComponent implements OnInit {
     }
 
     // Fetch admin and their permissions
-    fetchAccessAdminById(id: string) {
-      this.http.get(`http://localhost:8181/api/v1/admin/${id}`).subscribe(
-        (response: any) => {
-          console.log('Fetched admin:', response);
-          this.adminAccessName.set(response.name);
+    fetchAccessAdminById(id: string): void {
+      const username = this.service.getUsernameFromToken();
 
-          // Set the selected permissions from the fetched admin
-          if (response.permissions && Array.isArray(response.permissions)) {
+      this.http.get<any>(`http://localhost:8181/api/v1/admin/${id}`, {
+        params: { username }
+      }).subscribe({
+        next: (response) => {
+          console.log('Fetched admin:', response);
+
+          this.adminAccessName.set(response.name || '');
+
+          if (Array.isArray(response.permissions)) {
             this.selectedPermissions.set(response.permissions);
-            // Update filtered permissions with current search term
             this.updateFilteredPermissions();
+          } else {
+            this.selectedPermissions.set([]);
           }
         },
-        (error) => {
+        error: (error) => {
           console.error('Error fetching admin:', error);
           this.adminAccessName.set('');
           this.selectedPermissions.set([]);
         }
-      );
+      });
     }
+
 
     // Check if a permission is currently selected
     isSelected(code: string): boolean {
