@@ -1406,4 +1406,21 @@ public List<Map<String, Object>> getYearlyTransactionAmounts() {
         return details;
     }
 
+    public List<Map<String, Object>> getAdminActivitiesByUsername(String username) {
+        User admin = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!"ADMIN".equalsIgnoreCase(admin.getRole())) {
+            throw new RuntimeException("User is not an admin");
+        }
+        List<ActivityTracking> activities = activityTrackingRepo.findByUserId(admin.getId());
+        return activities.stream()
+                .map(activity -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("operationType", activity.getOperationType());
+                    map.put("operationDate", activity.getOperationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a")));
+                    map.put("description", activity.getOperationDescription());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
 }
